@@ -1,0 +1,97 @@
+# =========================
+# Unity generated folders
+# =========================
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+
+# MemoryCaptures can get excessive in size
+MemoryCaptures/
+
+# =========================
+# Visual Studio / Rider / VSCode
+# =========================
+
+.vs/
+.vscode/
+.idea/
+
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+
+# JetBrains Rider
+*.sln.iml
+
+# =========================
+# OS generated files
+# =========================
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# =========================
+# Unity cache server
+# =========================
+
+Cache/
+
+# =========================
+# Builds
+# =========================
+
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+*.ipa
+
+# =========================
+# Addressables
+# =========================
+
+ServerData/
+
+# =========================
+# Crash reports
+# =========================
+
+sysinfo.txt
+
+# =========================
+# Optional: Ignore packages lock (à adapter)
+# =========================
+
+# Packages/packages-lock.json
+
+# =========================
+# Optional: Ignore recordings
+# =========================
+
+# Recordings/
+
+# =========================
+# Ignore auto-generated files
+# =========================
+
+*.log
+*.stacktrace
