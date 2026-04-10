@@ -1,5 +1,10 @@
 using UnityEngine;
+using FMODUnity;
 
+/// <summary>
+/// Système de combat du joueur. 2 inputs de frappe (gauche/droite).
+/// Les SFX utilisent des EventReference FMOD.
+/// </summary>
 public class PlayerCombat : MonoBehaviour
 {
     [Header("=== Configuration ===")]
@@ -9,12 +14,12 @@ public class PlayerCombat : MonoBehaviour
     [Tooltip("Délai maximum entre les 2 inputs pour un 'Both' hit (secondes)")]
     public float bothInputWindow = 0.1f;
 
-    [Header("=== SFX ===")]
-    public AudioClip sfxPerfect;
-    public AudioClip sfxGood;
-    public AudioClip sfxMiss;
-    public AudioClip sfxTooSoon;
-    public AudioClip sfxTooLate;
+    [Header("=== SFX (FMOD Events) ===")]
+    public EventReference sfxPerfect;
+    public EventReference sfxGood;
+    public EventReference sfxMiss;
+    public EventReference sfxTooSoon;
+    public EventReference sfxTooLate;
 
     [Header("=== État (debug) ===")]
     [SerializeField] private float lastLeftAttackTime = -999f;
@@ -50,6 +55,7 @@ public class PlayerCombat : MonoBehaviour
 
         PerformAttack(EnemyInputType.RightOnly);
     }
+
     private void PerformAttack(EnemyInputType inputType)
     {
         if (EnemySpawnManager.Instance == null) return;
@@ -57,16 +63,10 @@ public class PlayerCombat : MonoBehaviour
         EnemyBase target = EnemySpawnManager.Instance.GetClosestVulnerableEnemy(
             transform.position, inputType);
 
-        if (target == null)
-        {
-            return;
-        }
+        if (target == null) return;
 
         float distance = Vector3.Distance(transform.position, target.transform.position);
-        if (distance > hitRange)
-        {
-            return;
-        }
+        if (distance > hitRange) return;
 
         TimingResult result = target.TryHit(inputType);
         HandleTimingResult(result, target);
@@ -112,11 +112,11 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    private void PlaySFX(AudioClip clip)
+    private void PlaySFX(EventReference sfxEvent)
     {
-        if (clip != null && AudioManager.Instance != null)
+        if (!sfxEvent.IsNull && FMODAudioManager.Instance != null)
         {
-            AudioManager.Instance.PlaySFX(clip);
+            FMODAudioManager.Instance.PlaySFX(sfxEvent);
         }
     }
 

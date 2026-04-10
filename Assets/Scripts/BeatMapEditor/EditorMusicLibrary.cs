@@ -1,20 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.IO;
 using System.Collections.Generic;
 
+/// <summary>
+/// Liste des musiques disponibles depuis le MusicDatabase ScriptableObject.
+/// Plus de scan de fichiers — tout vient du projet FMOD.
+/// </summary>
 public class EditorMusicLibrary : MonoBehaviour
 {
     [Header("=== Références ===")]
     public Transform listContent;
     public GameObject musicItemPrefab;
     public Button selectButton;
-    public Button importButton;
     public TextMeshProUGUI selectedMusicText;
 
-    private List<string> musicFiles = new List<string>();
-    private string selectedFile;
+    [Header("=== Base de données ===")]
+    [Tooltip("Référence au MusicDatabase SO contenant toutes les musiques")]
+    public MusicDatabase musicDatabase;
+
+    private MusicEntry selectedEntry;
 
     private void Start()
     {
@@ -24,51 +29,45 @@ public class EditorMusicLibrary : MonoBehaviour
             selectButton.interactable = false;
         }
 
-        if (importButton != null)
-        {
-            importButton.onClick.AddListener(OnImportClicked);
-        }
-
         RefreshList();
     }
 
+    /// <summary>
+    /// Rafraîchit la liste depuis le MusicDatabase.
+    /// </summary>
     public void RefreshList()
     {
+        // Nettoyer
         if (listContent != null)
         {
             foreach (Transform child in listContent)
                 Destroy(child.gameObject);
         }
 
-        musicFiles.Clear();
-        selectedFile = null;
+        selectedEntry = null;
         if (selectButton != null)
             selectButton.interactable = false;
 
-        string musicDir = Path.Combine(Application.persistentDataPath, "Music");
-        if (!Directory.Exists(musicDir))
+        if (musicDatabase == null || musicDatabase.entries == null)
         {
-            Directory.CreateDirectory(musicDir);
+            Debug.LogWarning("EditorMusicLibrary: No MusicDatabase assigned!");
             return;
         }
 
-        string[] extensions = { "*.ogg", "*.wav", "*.mp3" };
-        foreach (string ext in extensions)
+        // Créer un item pour chaque entrée
+        for (int i = 0; i < musicDatabase.entries.Count; i++)
         {
-            string[] files = Directory.GetFiles(musicDir, ext);
-            foreach (string file in files)
-            {
-                musicFiles.Add(file);
-                CreateMusicItem(file);
-            }
+            MusicEntry entry = musicDatabase.entries[i];
+            CreateMusicItem(entry, i);
         }
     }
 
-    private void CreateMusicItem(string filePath)
+    /// <summary>
+    /// Crée un item dans la liste pour une entrée musicale.
+    /// </summary>
+    private void CreateMusicItem(MusicEntry entry, int index)
     {
         if (listContent == null) return;
-
-        string fileName = Path.GetFileName(filePath);
 
         GameObject item;
         if (musicItemPrefab != null)
@@ -77,7 +76,7 @@ public class EditorMusicLibrary : MonoBehaviour
         }
         else
         {
-            item = new GameObject($"Music_{fileName}");
+            item = new GameObject($"Music_{entry.displayName}");
             item.transform.SetParent(listContent, false);
 
             var layout = item.AddComponent<LayoutElement>();
@@ -91,7 +90,7 @@ public class EditorMusicLibrary : MonoBehaviour
             var textGO = new GameObject("Text");
             textGO.transform.SetParent(item.transform, false);
             var text = textGO.AddComponent<TextMeshProUGUI>();
-            text.text = Path.GetFileNameWithoutExtension(fileName);
+            text.text = $"{entry.displayName}  |  {entry.bpm} BPM";
             text.fontSize = 18;
             text.alignment = TextAlignmentOptions.MidlineLeft;
             text.margin = new Vector4(10, 0, 10, 0);
@@ -106,17 +105,17 @@ public class EditorMusicLibrary : MonoBehaviour
         Button btn = item.GetComponent<Button>();
         if (btn != null)
         {
-            string capturedFile = fileName;
-            btn.onClick.AddListener(() => SelectFile(capturedFile));
+            MusicEntry capturedEntry = entry;
+            btn.onClick.AddListener(() => SelectEntry(capturedEntry));
         }
     }
 
-    private void SelectFile(string fileName)
+    private void SelectEntry(MusicEntry entry)
     {
-        selectedFile = fileName;
+        selectedEntry = entry;
 
         if (selectedMusicText != null)
-            selectedMusicText.text = Path.GetFileNameWithoutExtension(fileName);
+            selectedMusicText.text = entry.displayName;
 
         if (selectButton != null)
             selectButton.interactable = true;
@@ -124,22 +123,13 @@ public class EditorMusicLibrary : MonoBehaviour
 
     private void OnSelectClicked()
     {
-        if (string.IsNullOrEmpty(selectedFile)) return;
+        if (selectedEntry == null) return;
 
         if (BeatMapEditor.Instance != null)
         {
-            BeatMapEditor.Instance.SelectMusic(selectedFile);
+            BeatMapEditor.Instance.SelectMusic(selectedEntry);
         }
 
         gameObject.SetActive(false);
-    }
-
-    private void OnImportClicked()
-    {
-        EditorMusicImporter importer = BeatMapEditor.Instance?.musicImporter;
-        if (importer != null)
-        {
-            importer.OpenMusicFolder();
-        }
     }
 }

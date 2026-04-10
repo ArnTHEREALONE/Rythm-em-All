@@ -3,32 +3,42 @@ using UnityEngine.SceneManagement;
 using System.IO;
 using System.Collections.Generic;
 
-// Création, chargement, sauvegarde des beatmaps
+/// <summary>
+/// Contrôleur principal de l'éditeur de beatmap.
+/// Utilise FMOD pour la lecture musicale et le MusicDatabase pour la sélection.
+/// </summary>
 public class BeatMapEditor : MonoBehaviour
 {
     public static BeatMapEditor Instance { get; private set; }
 
-    [Header("État")]
+    [Header("=== État ===")]
     [SerializeField] private BeatMapData currentMap;
     [SerializeField] private bool isPlaying;
     [SerializeField] private float currentBeat;
     [SerializeField] private int selectedLane;
 
-    [Header("Références")]
+    [Header("=== Références ===")]
     public EditorTimeline timeline;
     public EditorGrid grid;
     public EditorControls controls;
     public EditorMetronome metronome;
     public EditorMusicLibrary musicLibrary;
-    public EditorMusicImporter musicImporter;
+    public MusicDatabase musicDatabase;
 
+    /// <summary>BeatMap en cours d'édition.</summary>
     public BeatMapData CurrentMap => currentMap;
 
+    /// <summary>Beat actuel dans l'éditeur.</summary>
     public float CurrentBeat => currentBeat;
 
+    /// <summary>Lane actuellement sélectionnée.</summary>
     public int SelectedLane => selectedLane;
 
+    /// <summary>Est en lecture ?</summary>
     public bool IsPlaying => isPlaying;
+
+    /// <summary>L'entrée musique sélectionnée.</summary>
+    public MusicEntry SelectedMusicEntry { get; private set; }
 
     private void Awake()
     {
@@ -45,12 +55,15 @@ public class BeatMapEditor : MonoBehaviour
         NewMap();
     }
 
+    /// <summary>
+    /// Crée une nouvelle beatmap vierge.
+    /// </summary>
     public void NewMap()
     {
         currentMap = new BeatMapData
         {
             songName = "New Map",
-            musicFileName = "",
+            fmodEventPath = "",
             bpm = 120f,
             songOffset = 0f,
             notes = new List<BeatNote>()
@@ -59,10 +72,14 @@ public class BeatMapEditor : MonoBehaviour
         currentBeat = 0f;
         selectedLane = 0;
         isPlaying = false;
+        SelectedMusicEntry = null;
 
         RefreshUI();
     }
 
+    /// <summary>
+    /// Charge une beatmap depuis un fichier JSON.
+    /// </summary>
     public void LoadMap(string filePath)
     {
         if (!File.Exists(filePath))
@@ -81,6 +98,12 @@ public class BeatMapEditor : MonoBehaviour
             return;
         }
 
+        // Retrouver le MusicEntry associé
+        if (musicDatabase != null && !string.IsNullOrEmpty(currentMap.fmodEventPath))
+        {
+            SelectedMusicEntry = musicDatabase.GetByEventPath(currentMap.fmodEventPath);
+        }
+
         currentBeat = 0f;
         isPlaying = false;
 
@@ -88,6 +111,9 @@ public class BeatMapEditor : MonoBehaviour
         Debug.Log($"BeatMapEditor: Loaded '{currentMap.songName}' ({currentMap.notes.Count} notes)");
     }
 
+    /// <summary>
+    /// Sauvegarde la beatmap en JSON.
+    /// </summary>
     public void SaveMap()
     {
         if (currentMap == null) return;
@@ -105,6 +131,9 @@ public class BeatMapEditor : MonoBehaviour
         Debug.Log($"BeatMapEditor: Saved to {filePath}");
     }
 
+    /// <summary>
+    /// Définit le BPM de la beatmap.
+    /// </summary>
     public void SetBPM(float bpm)
     {
         if (currentMap != null && bpm > 0)
@@ -114,18 +143,25 @@ public class BeatMapEditor : MonoBehaviour
         }
     }
 
-
-    public void SelectMusic(string musicFileName)
+    /// <summary>
+    /// Sélectionne une musique depuis le MusicDatabase.
+    /// </summary>
+    public void SelectMusic(MusicEntry entry)
     {
-        if (currentMap != null)
-        {
-            currentMap.musicFileName = musicFileName;
-            currentMap.songName = Path.GetFileNameWithoutExtension(musicFileName);
-            RefreshUI();
-        }
+        if (currentMap == null || entry == null) return;
+
+        SelectedMusicEntry = entry;
+        currentMap.fmodEventPath = entry.fmodEventPath;
+        currentMap.songName = entry.displayName;
+        currentMap.bpm = entry.bpm;
+        currentMap.songOffset = entry.songOffset;
+
+        RefreshUI();
     }
 
-
+    /// <summary>
+    /// Place une note à la position actuelle (beat + lane sélectionnés).
+    /// </summary>
     public void PlaceNote(EnemyInputType inputType)
     {
         if (currentMap == null) return;
@@ -140,12 +176,14 @@ public class BeatMapEditor : MonoBehaviour
 
         BeatNote note = new BeatNote(currentBeat, selectedLane, inputType);
         currentMap.notes.Add(note);
-
         currentMap.notes.Sort((a, b) => a.beatTime.CompareTo(b.beatTime));
 
         RefreshUI();
     }
 
+    /// <summary>
+    /// Supprime la note à la position actuelle.
+    /// </summary>
     public void DeleteNoteAtCursor()
     {
         if (currentMap == null) return;
@@ -160,56 +198,58 @@ public class BeatMapEditor : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Navigation : avancer/reculer dans le temps.
+    /// </summary>
     public void MoveBeat(float deltaBeats)
     {
         currentBeat = Mathf.Max(0f, currentBeat + deltaBeats);
         RefreshUI();
 
-        if (isPlaying && AudioManager.Instance != null && currentMap != null)
+        // Si en lecture, seek dans FMOD
+        if (isPlaying && FMODAudioManager.Instance != null && currentMap != null)
         {
             float time = currentMap.BeatToSeconds(currentBeat);
-            AudioManager.Instance.SeekTo(time);
+            FMODAudioManager.Instance.SeekToSeconds(time);
         }
     }
 
+    /// <summary>
+    /// Navigation : changer de lane.
+    /// </summary>
     public void MoveLane(int delta)
     {
         selectedLane = Mathf.Max(0, selectedLane + delta);
         RefreshUI();
     }
 
+    /// <summary>
+    /// Toggle play/pause via FMOD.
+    /// </summary>
     public void TogglePlayback()
     {
-        if (currentMap == null || string.IsNullOrEmpty(currentMap.musicFileName)) return;
+        if (currentMap == null || SelectedMusicEntry == null) return;
 
         if (isPlaying)
         {
             isPlaying = false;
-            AudioManager.Instance?.PauseMusic();
+            FMODAudioManager.Instance?.PauseMusic();
         }
         else
         {
             isPlaying = true;
 
-            string musicPath = Path.Combine(Application.persistentDataPath, "Music", currentMap.musicFileName);
-
-            if (AudioManager.Instance != null)
+            if (FMODAudioManager.Instance != null)
             {
-                if (AudioManager.Instance.IsPlaying)
+                if (FMODAudioManager.Instance.IsPlaying)
                 {
-                    AudioManager.Instance.ResumeMusic();
+                    FMODAudioManager.Instance.ResumeMusic();
                 }
                 else
                 {
-                    AudioManager.Instance.LoadAudioClip(musicPath, (clip) =>
-                    {
-                        if (clip != null)
-                        {
-                            AudioManager.Instance.PlayMusic(clip);
-                            AudioManager.Instance.SetPitch(1f);
-                            AudioManager.Instance.SeekTo(currentMap.BeatToSeconds(currentBeat));
-                        }
-                    });
+                    FMODAudioManager.Instance.PlayMusic(SelectedMusicEntry.fmodEvent);
+                    FMODAudioManager.Instance.SetPitch(1f); // Pas de speed multi dans l'éditeur
+                    FMODAudioManager.Instance.SeekToSeconds(currentMap.BeatToSeconds(currentBeat));
                 }
             }
         }
@@ -217,17 +257,21 @@ public class BeatMapEditor : MonoBehaviour
 
     private void Update()
     {
-        if (isPlaying && AudioManager.Instance != null && AudioManager.Instance.IsPlaying)
+        // En lecture : sync le beat actuel avec FMOD
+        if (isPlaying && FMODAudioManager.Instance != null && FMODAudioManager.Instance.IsPlaying)
         {
-            float musicTime = AudioManager.Instance.MusicTime;
+            float musicTime = FMODAudioManager.Instance.GetTimelinePositionSeconds();
             currentBeat = currentMap.SecondsToBeat(musicTime);
 
+            // Métronome
             if (metronome != null)
                 metronome.UpdateBeat(currentBeat);
 
             RefreshUI();
 
-            if (musicTime >= AudioManager.Instance.MusicLength - 0.1f)
+            // Si la musique est finie
+            float musicLength = FMODAudioManager.Instance.GetMusicLengthSeconds();
+            if (musicLength > 0 && musicTime >= musicLength - 0.1f)
             {
                 isPlaying = false;
             }
@@ -240,9 +284,12 @@ public class BeatMapEditor : MonoBehaviour
         if (grid != null) grid.Refresh();
     }
 
+    /// <summary>
+    /// Retour au menu principal.
+    /// </summary>
     public void ReturnToMenu()
     {
-        AudioManager.Instance?.StopMusic();
+        FMODAudioManager.Instance?.StopMusic();
         SceneManager.LoadScene("MainMenu");
     }
 }

@@ -1,7 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-
+/// <summary>
+/// Panel d'options : Volume (master, musique, SFX) via FMOD Bus.
+/// Plus de bouton "ouvrir dossier musique".
+/// </summary>
 public class OptionsUI : MonoBehaviour
 {
     [Header("=== Volume Sliders ===")]
@@ -9,12 +12,8 @@ public class OptionsUI : MonoBehaviour
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
 
-    [Header("=== Boutons ===")]
-    public Button openMusicFolderButton;
-
     private void Start()
     {
-
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.value = PlayerPrefs.GetFloat("MasterVolume", 1f);
@@ -33,10 +32,7 @@ public class OptionsUI : MonoBehaviour
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         }
 
-        if (openMusicFolderButton != null)
-            openMusicFolderButton.onClick.AddListener(OnOpenMusicFolder);
-
-
+        // Appliquer les volumes sauvegardés
         ApplyVolumes();
     }
 
@@ -58,24 +54,16 @@ public class OptionsUI : MonoBehaviour
         ApplyVolumes();
     }
 
+    /// <summary>
+    /// Applique les volumes via FMOD Bus.
+    /// </summary>
     private void ApplyVolumes()
     {
-        if (AudioManager.Instance != null)
+        if (FMODAudioManager.Instance != null)
         {
-            AudioManager.Instance.UpdateVolumes(
-                PlayerPrefs.GetFloat("MasterVolume", 1f),
-                PlayerPrefs.GetFloat("MusicVolume", 1f),
-                PlayerPrefs.GetFloat("SFXVolume", 1f)
-            );
+            FMODAudioManager.Instance.SetMasterVolume(PlayerPrefs.GetFloat("MasterVolume", 1f));
+            FMODAudioManager.Instance.SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 1f));
+            FMODAudioManager.Instance.SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 1f));
         }
-    }
-
-    private void OnOpenMusicFolder()
-    {
-        string musicPath = System.IO.Path.Combine(Application.persistentDataPath, "Music");
-
-        if (!System.IO.Directory.Exists(musicPath))
-            System.IO.Directory.CreateDirectory(musicPath);
-        Application.OpenURL("file:///" + musicPath.Replace("\\", "/"));
     }
 }

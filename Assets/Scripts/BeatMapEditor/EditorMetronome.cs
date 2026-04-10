@@ -1,32 +1,31 @@
 using UnityEngine;
+using FMODUnity;
 
+/// <summary>
+/// Métronome pour l'éditeur de beatmap.
+/// Joue des sons FMOD one-shot sur chaque beat.
+/// </summary>
 public class EditorMetronome : MonoBehaviour
 {
-    public AudioClip metronomeClick;
+    [Header("=== SFX FMOD ===")]
+    [Tooltip("Event FMOD pour le clic de métronome")]
+    public EventReference metronomeClick;
 
-    public AudioClip metronomeAccent;
+    [Tooltip("Event FMOD pour le clic accentué (temps fort)")]
+    public EventReference metronomeAccent;
 
+    [Header("=== Configuration ===")]
+    [Tooltip("Nombre de beats par mesure (4 pour du 4/4)")]
     public int beatsPerMeasure = 4;
 
+    [Tooltip("Le métronome est-il activé ?")]
     public bool isEnabled = false;
 
-    [Range(0f, 1f)]
-    public float volume = 0.5f;
-
-    private AudioSource audioSource;
     private int lastPlayedBeat = -1;
 
-    private void Awake()
-    {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f;
-        }
-    }
-
+    /// <summary>
+    /// Mise à jour du beat actuel. Appelé par BeatMapEditor.
+    /// </summary>
     public void UpdateBeat(float currentBeat)
     {
         if (!isEnabled) return;
@@ -39,21 +38,30 @@ public class EditorMetronome : MonoBehaviour
             PlayClick(beatInt);
         }
     }
+
+    /// <summary>
+    /// Joue le son de clic via FMOD.
+    /// </summary>
     private void PlayClick(int beatNumber)
     {
-        AudioClip clip;
+        EventReference clip;
 
-        if (beatNumber % beatsPerMeasure == 0 && metronomeAccent != null)
+        // Temps fort (premier beat de la mesure)
+        if (beatNumber % beatsPerMeasure == 0 && !metronomeAccent.IsNull)
             clip = metronomeAccent;
         else
             clip = metronomeClick;
 
-        if (clip != null && audioSource != null)
+        if (!clip.IsNull)
         {
-            audioSource.PlayOneShot(clip, volume);
+            RuntimeManager.PlayOneShot(clip);
         }
     }
-    public void Reset()
+
+    /// <summary>
+    /// Reset le compteur (quand on seek dans la timeline).
+    /// </summary>
+    public void ResetBeat()
     {
         lastPlayedBeat = -1;
     }

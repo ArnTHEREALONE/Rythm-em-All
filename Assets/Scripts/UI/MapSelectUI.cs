@@ -5,12 +5,17 @@ using TMPro;
 using System.IO;
 using System.Collections.Generic;
 
+/// <summary>
+/// Panel de sélection des beatmaps.
+/// Scanne les fichiers JSON dans persistentDataPath/BeatMaps/.
+/// </summary>
 public class MapSelectUI : MonoBehaviour
 {
+    [Header("=== Références ===")]
     public Transform mapListContent;
-
     public GameObject mapItemPrefab;
 
+    [Header("=== Info Panel ===")]
     public TextMeshProUGUI selectedMapName;
     public TextMeshProUGUI selectedMapBPM;
     public TextMeshProUGUI selectedMapNotes;
@@ -32,7 +37,9 @@ public class MapSelectUI : MonoBehaviour
             Directory.CreateDirectory(beatMapDir);
     }
 
-
+    /// <summary>
+    /// Rafraîchit la liste des beatmaps disponibles.
+    /// </summary>
     public void RefreshMapList()
     {
         if (mapListContent != null)
@@ -136,14 +143,17 @@ public class MapSelectUI : MonoBehaviour
             playSelectedButton.interactable = true;
     }
 
+    /// <summary>
+    /// Lance la partie avec la map sélectionnée. Plus de SelectedMusicPath.
+    /// </summary>
     private void OnPlaySelected()
     {
         if (selectedMap == null) return;
 
+        // Passer la beatmap au GameManager via static
         GameManager.SelectedBeatMap = selectedMap;
-        GameManager.SelectedMusicPath = Path.Combine(
-            Application.persistentDataPath, "Music", selectedMap.musicFileName);
 
+        // Charger la scène de jeu
         SceneManager.LoadScene("Game");
     }
 }

@@ -1,8 +1,11 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.IO;
 
+/// <summary>
+/// Gestionnaire principal du gameplay. Gère le flow d'une partie.
+/// La musique est jouée via FMOD — plus de chargement de fichier.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -17,19 +20,24 @@ public class GameManager : MonoBehaviour
         Victory
     }
 
+    [Header("=== Références ===")]
     public GameConfig gameConfig;
     public PlayerConfig playerConfig;
     public PlayerController player;
+    public MusicDatabase musicDatabase;
 
+    [Header("=== État ===")]
     [SerializeField] private GameState currentState = GameState.Loading;
 
+    [Header("=== Délai ===")]
+    [Tooltip("Délai avant le début de la musique (secondes)")]
     public float startDelay = 3f;
 
+    /// <summary>État actuel du jeu.</summary>
     public GameState CurrentState => currentState;
 
+    /// <summary>BeatMap actuellement chargée (définie avant le chargement de scène).</summary>
     public static BeatMapData SelectedBeatMap { get; set; }
-
-    public static string SelectedMusicPath { get; set; }
 
     private void Awake()
     {
@@ -43,6 +51,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        // Distribuer les configs aux singletons
         if (SpeedMultiplier.Instance != null)
             SpeedMultiplier.Instance.config = gameConfig;
 
@@ -52,15 +61,22 @@ public class GameManager : MonoBehaviour
         if (TimingJudge.Instance != null)
             TimingJudge.Instance.config = gameConfig;
 
+        // Initialiser le joueur
         if (player != null && playerConfig != null)
             player.Initialize(playerConfig);
 
+        // Écouter la mort du joueur
         if (player != null && player.health != null)
             player.health.OnDeath += HandlePlayerDeath;
 
+        // Synchroniser le pitch avec le SpeedMultiplier
+        if (SpeedMultiplier.Instance != null)
+            SpeedMultiplier.Instance.OnSpeedChanged += OnSpeedChanged;
+
+        // Charger la beatmap
         if (SelectedBeatMap != null)
         {
-            StartCoroutine(LoadAndStart());
+            StartCoroutine(StartGame());
         }
         else
         {
@@ -69,59 +85,63 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator LoadAndStart()
+    /// <summary>
+    /// Démarre la partie avec la beatmap sélectionnée.
+    /// Plus de chargement de fichier — FMOD event joue directement.
+    /// </summary>
+    private IEnumerator StartGame()
     {
         currentState = GameState.Loading;
 
-        string musicPath = SelectedMusicPath;
-        if (string.IsNullOrEmpty(musicPath))
-        {
-            musicPath = Path.Combine(Application.persistentDataPath, "Music", SelectedBeatMap.musicFileName);
-        }
-
-        AudioClip clip = null;
-        bool loaded = false;
-
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.LoadAudioClip(musicPath, (loadedClip) =>
-            {
-                clip = loadedClip;
-                loaded = true;
-            });
-        }
-
-        while (!loaded)
-            yield return null;
-
-        if (clip == null)
-        {
-            Debug.LogError("GameManager: Failed to load music!");
-            yield break;
-        }
-
+        // Initialiser le BeatManager
         if (BeatManager.Instance != null)
             BeatManager.Instance.Initialize(SelectedBeatMap.bpm, SelectedBeatMap.songOffset);
 
+        // Initialiser le SpawnManager
         if (EnemySpawnManager.Instance != null)
             EnemySpawnManager.Instance.Initialize(SelectedBeatMap);
 
+        // Reset score
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.ResetAll();
 
+        // Attendre avant de commencer
         currentState = GameState.WaitingToStart;
         yield return new WaitForSeconds(startDelay);
 
+        // GO ! — Jouer la musique via FMOD (l'event path est dans la beatmap)
         currentState = GameState.Playing;
-        AudioManager.Instance.PlayMusic(clip);
-        BeatManager.Instance.StartBeat();
+
+        if (FMODAudioManager.Instance != null)
+        {
+            // Chercher le MusicEntry dans la base de données pour l'EventReference
+            MusicEntry entry = musicDatabase?.GetByEventPath(SelectedBeatMap.fmodEventPath);
+            if (entry != null)
+            {
+                FMODAudioManager.Instance.PlayMusic(entry.fmodEvent);
+            }
+            else
+            {
+                // Fallback : utiliser le chemin directement
+                FMODAudioManager.Instance.PlayMusic(SelectedBeatMap.fmodEventPath);
+            }
+
+            // Écouter la fin de la musique
+            FMODAudioManager.Instance.OnMusicEnded += CheckVictory;
+        }
+
+        BeatManager.Instance?.StartBeat();
     }
 
+    /// <summary>
+    /// Crée une beatmap de test pour le développement.
+    /// </summary>
     private void LoadTestBeatMap()
     {
         SelectedBeatMap = new BeatMapData
         {
             songName = "Test Map",
+            fmodEventPath = "event:/Music/Test",
             bpm = 120,
             songOffset = 0f,
             notes = new System.Collections.Generic.List<BeatNote>()
@@ -149,16 +169,22 @@ public class GameManager : MonoBehaviour
         BeatManager.Instance?.StartBeat();
     }
 
+    /// <summary>
+    /// Callback quand le SpeedMultiplier change — ajuste le pitch FMOD.
+    /// </summary>
+    private void OnSpeedChanged(float newSpeed)
+    {
+        if (FMODAudioManager.Instance != null && currentState == GameState.Playing)
+        {
+            FMODAudioManager.Instance.SetPitch(newSpeed);
+        }
+    }
+
     private void Update()
     {
         if (currentState != GameState.Playing) return;
 
-        if (AudioManager.Instance != null && !AudioManager.Instance.IsPlaying &&
-            EnemySpawnManager.Instance != null && EnemySpawnManager.Instance.AllNotesProcessed())
-        {
-            HandleVictory();
-        }
-
+        // Pause avec Escape
         if (UnityEngine.InputSystem.Keyboard.current != null &&
             UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
         {
@@ -166,20 +192,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void CheckVictory()
+    {
+        if (EnemySpawnManager.Instance != null && EnemySpawnManager.Instance.AllNotesProcessed())
+        {
+            HandleVictory();
+        }
+    }
+
+    /// <summary>
+    /// Toggle pause/resume.
+    /// </summary>
     public void TogglePause()
     {
         if (currentState == GameState.Playing)
         {
             currentState = GameState.Paused;
             Time.timeScale = 0f;
-            AudioManager.Instance?.PauseMusic();
+            FMODAudioManager.Instance?.PauseMusic();
             BeatManager.Instance?.SetPaused(true);
         }
         else if (currentState == GameState.Paused)
         {
             currentState = GameState.Playing;
             Time.timeScale = 1f;
-            AudioManager.Instance?.ResumeMusic();
+            FMODAudioManager.Instance?.ResumeMusic();
             BeatManager.Instance?.SetPaused(false);
         }
     }
@@ -187,7 +224,7 @@ public class GameManager : MonoBehaviour
     private void HandlePlayerDeath()
     {
         currentState = GameState.GameOver;
-        AudioManager.Instance?.StopMusic();
+        FMODAudioManager.Instance?.StopMusic();
         BeatManager.Instance?.StopBeat();
         EnemySpawnManager.Instance?.StopSpawning();
     }
@@ -208,6 +245,15 @@ public class GameManager : MonoBehaviour
     public void ReturnToMenu()
     {
         Time.timeScale = 1f;
+        FMODAudioManager.Instance?.StopMusic();
         SceneManager.LoadScene("MainMenu");
+    }
+
+    private void OnDestroy()
+    {
+        if (SpeedMultiplier.Instance != null)
+            SpeedMultiplier.Instance.OnSpeedChanged -= OnSpeedChanged;
+        if (FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.OnMusicEnded -= CheckVictory;
     }
 }

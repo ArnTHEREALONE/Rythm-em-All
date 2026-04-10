@@ -62,12 +62,12 @@ public class EditorTimeline : MonoBehaviour
 
     private float GetMaxBeats()
     {
-        if (AudioManager.Instance != null && AudioManager.Instance.MusicLength > 0)
+        if (FMODAudioManager.Instance != null && FMODAudioManager.Instance.GetMusicLengthSeconds() > 0)
         {
             var map = BeatMapEditor.Instance.CurrentMap;
             if (map != null && map.bpm > 0)
             {
-                return map.SecondsToBeat(AudioManager.Instance.MusicLength);
+                return map.SecondsToBeat(FMODAudioManager.Instance.GetMusicLengthSeconds());
             }
         }
 

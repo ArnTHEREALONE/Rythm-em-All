@@ -1,6 +1,11 @@
 using UnityEngine;
 using System;
 
+/// <summary>
+/// Classe de base des ennemis. Gère le cycle de vie complet :
+/// Spawn → Moving → Vulnerable → (Hit/Exploding) → Dead.
+/// Le timing est basé sur la DSP clock FMOD via FMODAudioManager.
+/// </summary>
 public class EnemyBase : MonoBehaviour
 {
     public enum EnemyState
@@ -12,23 +17,28 @@ public class EnemyBase : MonoBehaviour
         Dead
     }
 
+    [Header("=== Configuration ===")]
     public EnemyData data;
 
+    [Header("=== État (debug) ===")]
     [SerializeField] private EnemyState currentState = EnemyState.Spawning;
     [SerializeField] private int currentHP;
     [SerializeField] private float targetBeatTime;
     [SerializeField] private float vulnerableStartTime;
     [SerializeField] private int spamClickCount;
 
+    [Header("=== Timing ===")]
     public float vulnerableDuration = 0.5f;
 
+    [Header("=== Visuel ===")]
     public GameObject vulnerableEffect;
-
     public Renderer mainRenderer;
 
+    // === Events ===
     public event Action<EnemyBase, TimingResult> OnEnemyKilled;
     public event Action<EnemyBase> OnEnemyExploded;
 
+    // === Propriétés ===
     public EnemyState CurrentState => currentState;
     public int CurrentHP => currentHP;
     public float TargetBeatTime => targetBeatTime;
@@ -46,6 +56,9 @@ public class EnemyBase : MonoBehaviour
             originalColor = mainRenderer.material.color;
     }
 
+    /// <summary>
+    /// Initialise l'ennemi lors du spawn.
+    /// </summary>
     public void Initialize(EnemyData enemyData, float targetBeat)
     {
         data = enemyData;
@@ -98,12 +111,20 @@ public class EnemyBase : MonoBehaviour
             mainRenderer.material.color = Color.white;
     }
 
+    /// <summary>
+    /// Tente de frapper cet ennemi. Vérifie le type d'input requis.
+    /// Le timing est évalué via la position timeline FMOD.
+    /// </summary>
     public TimingResult TryHit(EnemyInputType inputType)
     {
+        // Pas vulnérable ? Calcul du timing quand même
         if (currentState == EnemyState.Moving)
         {
             float targetTimeInSeconds = BeatManager.Instance.BeatToSeconds(targetBeatTime);
-            float currentTime = AudioManager.Instance != null ? AudioManager.Instance.MusicTime : Time.time;
+            // Timing basé sur FMOD DSP clock
+            float currentTime = FMODAudioManager.Instance != null
+                ? FMODAudioManager.Instance.GetTimelinePositionSeconds()
+                : Time.time;
 
             TimingResult earlyResult = TimingJudge.Instance != null
                 ? TimingJudge.Instance.Judge(currentTime, targetTimeInSeconds)
@@ -126,8 +147,11 @@ public class EnemyBase : MonoBehaviour
             return HandleSpamHit();
         }
 
+        // Hit normal : évalue le timing via FMOD
         float targetTime = BeatManager.Instance.BeatToSeconds(targetBeatTime);
-        float hitTime = AudioManager.Instance != null ? AudioManager.Instance.MusicTime : Time.time;
+        float hitTime = FMODAudioManager.Instance != null
+            ? FMODAudioManager.Instance.GetTimelinePositionSeconds()
+            : Time.time;
 
         TimingResult result = TimingJudge.Instance != null
             ? TimingJudge.Instance.Judge(hitTime, targetTime)
@@ -191,7 +215,6 @@ public class EnemyBase : MonoBehaviour
             vulnerableEffect.SetActive(false);
 
         OnEnemyKilled?.Invoke(this, result);
-
         Destroy(gameObject, 0.1f);
     }
 
@@ -203,7 +226,6 @@ public class EnemyBase : MonoBehaviour
             vulnerableEffect.SetActive(false);
 
         OnEnemyExploded?.Invoke(this);
-
         Destroy(gameObject, 0.3f);
     }
 
