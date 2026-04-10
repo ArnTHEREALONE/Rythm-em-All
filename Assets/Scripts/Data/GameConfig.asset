@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 573c789119e93bd44b31a2da8d6440cd, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: Assembly-CSharp::GameConfig
+  baseScorePerKill: 100
+  perfectScoreMultiplier: 2
+  goodScoreMultiplier: 1
+  tooLateScoreMultiplier: 0.5
+  tooSoonScoreMultiplier: 0
+  scoreMultiplierBase: 1
+  scoreMultiplierIncrementPerfect: 0.2
+  scoreMultiplierIncrementGood: 0.1
+  scoreMultiplierMax: 10
+  scoreMultiplierOnMiss: 1
+  baseGameSpeed: 1
+  speedPerScoreMultiplier: 0.05
+  speedSoftCap: 1.8
+  speedHardCap: 2.5
+  speedOnMiss: 1
+  cooldownSpeedFactor: 1
+  perfectWindow: 0.05
+  goodWindow: 0.12
+  tooSoonWindow: 0.25
+  tooLateWindow: 0.25

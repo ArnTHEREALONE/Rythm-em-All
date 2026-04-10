@@ -3,10 +3,7 @@ using System;
 using System.Collections;
 using System.IO;
 
-/// <summary>
-/// Gère la lecture de la musique et le contrôle du pitch (lié à la vitesse du jeu).
-/// Singleton accessible depuis tout le projet.
-/// </summary>
+
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
@@ -28,9 +25,6 @@ public class AudioManager : MonoBehaviour
     [Range(0f, 1f)]
     public float sfxVolume = 1f;
 
-    /// <summary>
-    /// Temps actuel dans la musique en secondes (DSP-precise quand possible).
-    /// </summary>
     public float MusicTime
     {
         get
@@ -41,14 +35,8 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Est-ce que la musique est en lecture ?
-    /// </summary>
     public bool IsPlaying => musicSource != null && musicSource.isPlaying;
 
-    /// <summary>
-    /// Durée totale de la musique en secondes.
-    /// </summary>
     public float MusicLength => musicSource != null && musicSource.clip != null ? musicSource.clip.length : 0f;
 
     private void Awake()
@@ -60,7 +48,6 @@ public class AudioManager : MonoBehaviour
         }
         Instance = this;
 
-        // Créer les AudioSources si pas assignées
         if (musicSource == null)
         {
             musicSource = gameObject.AddComponent<AudioSource>();
@@ -78,9 +65,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Joue un clip musical.
-    /// </summary>
     public void PlayMusic(AudioClip clip)
     {
         if (musicSource == null || clip == null) return;
@@ -90,63 +74,42 @@ public class AudioManager : MonoBehaviour
         musicSource.Play();
     }
 
-    /// <summary>
-    /// Met la musique en pause.
-    /// </summary>
     public void PauseMusic()
     {
         if (musicSource != null && musicSource.isPlaying)
             musicSource.Pause();
     }
 
-    /// <summary>
-    /// Reprend la musique après une pause.
-    /// </summary>
     public void ResumeMusic()
     {
         if (musicSource != null)
             musicSource.UnPause();
     }
 
-    /// <summary>
-    /// Arrête la musique.
-    /// </summary>
     public void StopMusic()
     {
         if (musicSource != null)
             musicSource.Stop();
     }
 
-    /// <summary>
-    /// Définit le pitch de la musique (appelé par SpeedMultiplier).
-    /// </summary>
     public void SetPitch(float pitch)
     {
         if (musicSource != null)
             musicSource.pitch = Mathf.Clamp(pitch, 0.1f, 3f);
     }
 
-    /// <summary>
-    /// Seek à un moment précis dans la musique.
-    /// </summary>
     public void SeekTo(float timeInSeconds)
     {
         if (musicSource != null && musicSource.clip != null)
             musicSource.time = Mathf.Clamp(timeInSeconds, 0f, musicSource.clip.length);
     }
 
-    /// <summary>
-    /// Joue un effet sonore one-shot.
-    /// </summary>
     public void PlaySFX(AudioClip clip)
     {
         if (sfxSource != null && clip != null)
             sfxSource.PlayOneShot(clip, masterVolume * sfxVolume);
     }
 
-    /// <summary>
-    /// Met à jour les volumes (appelé quand les sliders changent dans les options).
-    /// </summary>
     public void UpdateVolumes(float master, float music, float sfx)
     {
         masterVolume = master;
@@ -157,10 +120,6 @@ public class AudioManager : MonoBehaviour
             musicSource.volume = masterVolume * musicVolume;
     }
 
-    /// <summary>
-    /// Charge un AudioClip depuis un fichier sur le disque (persistentDataPath).
-    /// Supporte .ogg, .wav, .mp3 via UnityWebRequest.
-    /// </summary>
     public void LoadAudioClip(string filePath, Action<AudioClip> onLoaded)
     {
         StartCoroutine(LoadAudioClipCoroutine(filePath, onLoaded));
@@ -210,7 +169,6 @@ public class AudioManager : MonoBehaviour
 
     private void Update()
     {
-        // Sync le pitch avec le SpeedMultiplier en continu
         if (SpeedMultiplier.Instance != null && musicSource != null && musicSource.isPlaying)
         {
             musicSource.pitch = SpeedMultiplier.Instance.GetMusicPitch();

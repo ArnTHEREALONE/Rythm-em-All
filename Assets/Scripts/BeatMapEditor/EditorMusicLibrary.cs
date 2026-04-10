@@ -4,10 +4,6 @@ using TMPro;
 using System.IO;
 using System.Collections.Generic;
 
-/// <summary>
-/// Liste des musiques enregistrées dans persistentDataPath/Music/.
-/// Menu scrollable pour sélectionner une musique dans l'éditeur.
-/// </summary>
 public class EditorMusicLibrary : MonoBehaviour
 {
     [Header("=== Références ===")]
@@ -36,12 +32,8 @@ public class EditorMusicLibrary : MonoBehaviour
         RefreshList();
     }
 
-    /// <summary>
-    /// Rafraîchit la liste des fichiers musique.
-    /// </summary>
     public void RefreshList()
     {
-        // Nettoyer
         if (listContent != null)
         {
             foreach (Transform child in listContent)
@@ -53,7 +45,6 @@ public class EditorMusicLibrary : MonoBehaviour
         if (selectButton != null)
             selectButton.interactable = false;
 
-        // Scanner le dossier
         string musicDir = Path.Combine(Application.persistentDataPath, "Music");
         if (!Directory.Exists(musicDir))
         {
@@ -73,9 +64,6 @@ public class EditorMusicLibrary : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Crée un item dans la liste pour un fichier musique.
-    /// </summary>
     private void CreateMusicItem(string filePath)
     {
         if (listContent == null) return;
@@ -143,13 +131,11 @@ public class EditorMusicLibrary : MonoBehaviour
             BeatMapEditor.Instance.SelectMusic(selectedFile);
         }
 
-        // Fermer le panel
         gameObject.SetActive(false);
     }
 
     private void OnImportClicked()
     {
-        // Ouvrir le dossier pour que l'utilisateur y mette ses fichiers
         EditorMusicImporter importer = BeatMapEditor.Instance?.musicImporter;
         if (importer != null)
         {

@@ -2,47 +2,34 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// HUD en jeu : Score, Combo, Multiplicateur, Vitesse, PV.
-/// S'abonne aux events des managers pour se mettre à jour.
-/// </summary>
 public class GameUI : MonoBehaviour
 {
-    [Header("=== Textes ===")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI comboText;
     public TextMeshProUGUI multiplierText;
     public TextMeshProUGUI speedText;
 
-    [Header("=== Slider PV ===")]
     public Slider hpSlider;
-
-    [Header("=== Panels ===")]
     public GameObject pausePanel;
     public GameObject gameOverPanel;
     public GameObject victoryPanel;
 
-    [Header("=== Game Over / Victory ===")]
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI finalComboText;
 
-    [Header("=== Boutons Pause ===")]
     public Button resumeButton;
     public Button restartButton;
     public Button quitButton;
 
-    [Header("=== Boutons Game Over / Victory ===")]
     public Button restartButton2;
     public Button quitButton2;
 
     private void Start()
     {
-        // Cacher les panels
         if (pausePanel != null) pausePanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (victoryPanel != null) victoryPanel.SetActive(false);
 
-        // S'abonner aux events
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.OnScoreChanged += UpdateScore;
@@ -55,7 +42,6 @@ public class GameUI : MonoBehaviour
             SpeedMultiplier.Instance.OnSpeedChanged += UpdateSpeed;
         }
 
-        // Boutons
         if (resumeButton != null)
             resumeButton.onClick.AddListener(() => GameManager.Instance?.TogglePause());
         if (restartButton != null)
@@ -67,7 +53,6 @@ public class GameUI : MonoBehaviour
         if (quitButton2 != null)
             quitButton2.onClick.AddListener(() => GameManager.Instance?.ReturnToMenu());
 
-        // Valeurs initiales
         UpdateScore(0);
         UpdateCombo(0);
         UpdateMultiplier(1f);
@@ -78,7 +63,6 @@ public class GameUI : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
-        // Gérer l'affichage des panels selon l'état du jeu
         switch (GameManager.Instance.CurrentState)
         {
             case GameManager.GameState.Paused:
@@ -112,7 +96,6 @@ public class GameUI : MonoBehaviour
         if (comboText != null)
         {
             comboText.text = combo > 0 ? $"{combo}x" : "";
-            // Animation de scale pour les gros combos
             if (combo > 0 && combo % 10 == 0)
             {
                 comboText.transform.localScale = Vector3.one * 1.5f;
@@ -151,7 +134,6 @@ public class GameUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Se désabonner
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.OnScoreChanged -= UpdateScore;

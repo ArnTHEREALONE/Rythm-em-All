@@ -1,12 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Menu pause avec Reprendre, Recommencer, Quitter vers menu.
-/// </summary>
 public class PauseMenuUI : MonoBehaviour
 {
-    [Header("=== Références ===")]
     public GameObject pausePanel;
     public Button resumeButton;
     public Button restartButton;

@@ -3,10 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 
-/// <summary>
-/// Grille visuelle de l'éditeur : colonnes = lanes (spawners), lignes = beats.
-/// Affiche les notes placées et permet le placement via navigation ZQSD.
-/// </summary>
 public class EditorGrid : MonoBehaviour
 {
     [Header("=== Configuration ===")]
@@ -39,9 +35,6 @@ public class EditorGrid : MonoBehaviour
         CreateCursor();
     }
 
-    /// <summary>
-    /// Rafraîchit l'affichage de la grille.
-    /// </summary>
     public void Refresh()
     {
         ClearNotes();
@@ -55,7 +48,6 @@ public class EditorGrid : MonoBehaviour
         float startBeat = currentBeat - visibleBeats / 4f;
         float endBeat = currentBeat + visibleBeats * 3f / 4f;
 
-        // Afficher les notes dans la zone visible
         foreach (var note in map.notes)
         {
             if (note.beatTime >= startBeat && note.beatTime <= endBeat)
@@ -67,13 +59,9 @@ public class EditorGrid : MonoBehaviour
             }
         }
 
-        // Mettre à jour le curseur
         UpdateCursor(currentBeat, startBeat, endBeat);
     }
 
-    /// <summary>
-    /// Crée un visuel pour une note dans la grille.
-    /// </summary>
     private void CreateNoteVisual(BeatNote note, float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -97,10 +85,8 @@ public class EditorGrid : MonoBehaviour
             );
         }
 
-        // Positionner le visuel
         PositionInGrid(noteGO, note.spawnerIndex, note.beatTime, startBeat, endBeat);
 
-        // Appliquer la couleur
         Image image = noteGO.GetComponent<Image>();
         if (image != null)
             image.color = GetColorForInputType(note.inputType);
@@ -108,9 +94,6 @@ public class EditorGrid : MonoBehaviour
         noteVisuals.Add(noteGO);
     }
 
-    /// <summary>
-    /// Position un GameObject dans la grille.
-    /// </summary>
     private void PositionInGrid(GameObject go, int lane, float beat, float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -121,11 +104,9 @@ public class EditorGrid : MonoBehaviour
         float gridWidth = gridArea.rect.width;
         float gridHeight = gridArea.rect.height;
 
-        // X : position dans la lane (gauche à droite)
         float laneWidth = gridWidth / laneCount;
         float x = (lane + 0.5f) * laneWidth - gridWidth / 2f;
 
-        // Y : position temporelle (haut = futur, bas = passé)
         float beatRange = endBeat - startBeat;
         float normalizedBeat = (beat - startBeat) / beatRange;
         float y = (normalizedBeat - 0.5f) * gridHeight;
@@ -133,9 +114,6 @@ public class EditorGrid : MonoBehaviour
         rect.anchoredPosition = new Vector2(x, y);
     }
 
-    /// <summary>
-    /// Met à jour la position du curseur.
-    /// </summary>
     private void UpdateCursor(float currentBeat, float startBeat, float endBeat)
     {
         if (cursorVisual == null || gridArea == null) return;
@@ -175,9 +153,6 @@ public class EditorGrid : MonoBehaviour
         noteVisuals.Clear();
     }
 
-    /// <summary>
-    /// Retourne la couleur associée à un type d'input.
-    /// </summary>
     public Color GetColorForInputType(EnemyInputType type)
     {
         return type switch

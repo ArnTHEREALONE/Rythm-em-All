@@ -2,11 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Contrôles de transport de l'éditeur : Play/Pause, avancer/reculer par beat,
-/// BPM input, toggle métronome.
-/// Navigation ZQSD pour se déplacer dans la grille.
-/// </summary>
+// Contrôles de transport de l'éditeur : Play/Pause, avancer/reculer par beat,
+// BPM input, toggle métronome.
+// Navigation gauche/droite/haut/bas pour se déplacer dans la grille.
 public class EditorControls : MonoBehaviour
 {
     [Header("=== Boutons de transport ===")]
@@ -27,7 +25,7 @@ public class EditorControls : MonoBehaviour
 
     private void Start()
     {
-        // Boutons de transport
+        // Nav
         if (playPauseButton != null)
             playPauseButton.onClick.AddListener(OnPlayPause);
         if (prevBeatButton != null)
@@ -57,22 +55,19 @@ public class EditorControls : MonoBehaviour
 
     private void Update()
     {
-        // Navigation clavier ZQSD dans l'éditeur
         if (BeatMapEditor.Instance == null || BeatMapEditor.Instance.IsPlaying) return;
 
-        // Vérifie qu'on n'est pas en train de taper dans un champ texte
         if (bpmInputField != null && bpmInputField.isFocused) return;
 
         if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.W))
-            OnMoveBeat(1f); // Avancer d'un beat
+            OnMoveBeat(1f);
         if (Input.GetKeyDown(KeyCode.S))
-            OnMoveBeat(-1f); // Reculer d'un beat
+            OnMoveBeat(-1f);
         if (Input.GetKeyDown(KeyCode.D))
-            BeatMapEditor.Instance.MoveLane(1); // Lane suivante
+            BeatMapEditor.Instance.MoveLane(1);
         if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.A))
-            BeatMapEditor.Instance.MoveLane(-1); // Lane précédente
+            BeatMapEditor.Instance.MoveLane(-1);
 
-        // Placement de notes
         if (Input.GetKeyDown(KeyCode.Space))
             BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -84,17 +79,14 @@ public class EditorControls : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha4))
             BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
 
-        // Suppression
         if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
             BeatMapEditor.Instance.DeleteNoteAtCursor();
 
-        // Play/Pause
         if (Input.GetKeyDown(KeyCode.P))
             OnPlayPause();
 
-        // Update du texte play/pause
         if (playPauseText != null)
-            playPauseText.text = BeatMapEditor.Instance.IsPlaying ? "⏸" : "▶";
+            playPauseText.text = BeatMapEditor.Instance.IsPlaying ? "II" : "I>";
     }
 
     private void OnPlayPause()

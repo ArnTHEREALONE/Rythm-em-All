@@ -1,9 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Panel d'options : Volume (master, musique, SFX), inputs, dossier musiques.
-/// </summary>
+
 public class OptionsUI : MonoBehaviour
 {
     [Header("=== Volume Sliders ===")]
@@ -16,7 +14,7 @@ public class OptionsUI : MonoBehaviour
 
     private void Start()
     {
-        // Charger les valeurs sauvegardées
+
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.value = PlayerPrefs.GetFloat("MasterVolume", 1f);
@@ -38,7 +36,7 @@ public class OptionsUI : MonoBehaviour
         if (openMusicFolderButton != null)
             openMusicFolderButton.onClick.AddListener(OnOpenMusicFolder);
 
-        // Appliquer les volumes
+
         ApplyVolumes();
     }
 
@@ -76,11 +74,8 @@ public class OptionsUI : MonoBehaviour
     {
         string musicPath = System.IO.Path.Combine(Application.persistentDataPath, "Music");
 
-        // Créer le dossier s'il n'existe pas
         if (!System.IO.Directory.Exists(musicPath))
             System.IO.Directory.CreateDirectory(musicPath);
-
-        // Ouvrir le dossier dans l'explorateur
         Application.OpenURL("file:///" + musicPath.Replace("\\", "/"));
     }
 }

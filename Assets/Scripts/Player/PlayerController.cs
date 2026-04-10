@@ -1,10 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Contrôleur principal du joueur. Hub qui orchestre les sous-composants
-/// (mouvement, combat, dash, santé) et gère les inputs via le New Input System.
-/// </summary>
 [RequireComponent(typeof(PlayerMovement))]
 [RequireComponent(typeof(PlayerCombat))]
 [RequireComponent(typeof(PlayerDash))]
@@ -24,13 +20,11 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        // Auto-récupérer les composants si pas assignés
         if (movement == null) movement = GetComponent<PlayerMovement>();
         if (combat == null) combat = GetComponent<PlayerCombat>();
         if (dash == null) dash = GetComponent<PlayerDash>();
         if (health == null) health = GetComponent<PlayerHealth>();
 
-        // Créer les input actions
         inputActions = new InputSystem_Actions();
     }
 
@@ -38,15 +32,12 @@ public class PlayerController : MonoBehaviour
     {
         inputActions.Player.Enable();
 
-        // Inputs de mouvement
         inputActions.Player.Move.performed += OnMove;
         inputActions.Player.Move.canceled += OnMove;
 
-        // Inputs de combat
         inputActions.Player.AttackLeft.performed += OnAttackLeft;
         inputActions.Player.AttackRight.performed += OnAttackRight;
 
-        // Input de dash
         inputActions.Player.Dash.performed += OnDash;
     }
 
@@ -66,7 +57,6 @@ public class PlayerController : MonoBehaviour
         Vector2 input = ctx.ReadValue<Vector2>();
         if (movement != null)
         {
-            // Convertir Vector2 (XY) en Vector3 (XZ) pour un jeu top-down
             movement.SetMoveInput(new Vector3(input.x, 0f, input.y));
         }
     }
@@ -95,9 +85,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Initialise le joueur avec la config.
-    /// </summary>
     public void Initialize(PlayerConfig playerConfig)
     {
         config = playerConfig;

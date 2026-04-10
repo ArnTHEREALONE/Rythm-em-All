@@ -101,6 +101,12 @@ GameObject:
   m_Component:
   - component: {fileID: 7230475088236558089}
   - component: {fileID: 1354173145331904704}
+  - component: {fileID: 5194863857229957332}
+  - component: {fileID: 1768092692070481748}
+  - component: {fileID: 7517049715415926573}
+  - component: {fileID: 4960253401516150143}
+  - component: {fileID: 8898181989481095386}
+  - component: {fileID: 1341365103947229477}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -131,10 +137,129 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5107898816876568930}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 454349c9ae258bf438b8c0ee90a42cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   speed: 5
   m: {fileID: 0}
+--- !u!54 &5194863857229957332
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 0
+--- !u!114 &1768092692070481748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e79f6c5dedd21704eb834896d8417aef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  movement: {fileID: 0}
+  combat: {fileID: 0}
+  dash: {fileID: 0}
+  health: {fileID: 0}
+  config: {fileID: 11400000, guid: 62701447388e4cd41869239ce6c4c232, type: 2}
+--- !u!114 &7517049715415926573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1c329101f6a7dc47beb5f080cf8d001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  baseSpeed: 8
+  moveInput: {x: 0, y: 0, z: 0}
+  actualSpeed: 0
+--- !u!114 &4960253401516150143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a65952d52dc863e45840de07f3c1d767, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  hitRange: 3
+  bothInputWindow: 0.1
+  sfxPerfect: {fileID: 0}
+  sfxGood: {fileID: 0}
+  sfxMiss: {fileID: 0}
+  sfxTooSoon: {fileID: 0}
+  sfxTooLate: {fileID: 0}
+  lastLeftAttackTime: -999
+  lastRightAttackTime: -999
+--- !u!114 &8898181989481095386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5cf54026ad4db5438c26797505e5591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDash
+  dashDistance: 5
+  baseCooldown: 1
+  dashDuration: 0.15
+  dashSFX: {fileID: 0}
+  isDashing: 0
+  cooldownTimer: 0
+  currentCooldown: 0
+--- !u!114 &1341365103947229477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5107898816876568930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 564c3588b91a4d1489463c9ebf89575b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  maxHP: 100
+  healOnKillAmount: 5
+  passiveHealRate: 1
+  passiveHealDelay: 3
+  hpSlider: {fileID: 0}
+  currentHP: 0
+  timeSinceLastDamage: 0
+  isPassiveHealing: 0

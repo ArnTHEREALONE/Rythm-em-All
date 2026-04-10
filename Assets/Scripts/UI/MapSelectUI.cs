@@ -5,20 +5,12 @@ using TMPro;
 using System.IO;
 using System.Collections.Generic;
 
-/// <summary>
-/// Panel de sélection des beatmaps.
-/// Scanne les fichiers JSON dans persistentDataPath/BeatMaps/.
-/// </summary>
 public class MapSelectUI : MonoBehaviour
 {
-    [Header("=== Références ===")]
-    [Tooltip("Parent du ScrollView Content pour les items de map")]
     public Transform mapListContent;
 
-    [Tooltip("Prefab d'un item de la liste (bouton + infos)")]
     public GameObject mapItemPrefab;
 
-    [Header("=== Info Panel ===")]
     public TextMeshProUGUI selectedMapName;
     public TextMeshProUGUI selectedMapBPM;
     public TextMeshProUGUI selectedMapNotes;
@@ -35,18 +27,14 @@ public class MapSelectUI : MonoBehaviour
             playSelectedButton.interactable = false;
         }
 
-        // Créer le dossier si nécessaire
         string beatMapDir = Path.Combine(Application.persistentDataPath, "BeatMaps");
         if (!Directory.Exists(beatMapDir))
             Directory.CreateDirectory(beatMapDir);
     }
 
-    /// <summary>
-    /// Rafraîchit la liste des beatmaps disponibles.
-    /// </summary>
+
     public void RefreshMapList()
     {
-        // Nettoyer la liste existante
         if (mapListContent != null)
         {
             foreach (Transform child in mapListContent)
@@ -58,7 +46,6 @@ public class MapSelectUI : MonoBehaviour
         if (playSelectedButton != null)
             playSelectedButton.interactable = false;
 
-        // Scanner le dossier
         string beatMapDir = Path.Combine(Application.persistentDataPath, "BeatMaps");
         if (!Directory.Exists(beatMapDir))
         {
@@ -90,9 +77,6 @@ public class MapSelectUI : MonoBehaviour
         Debug.Log($"MapSelectUI: Loaded {loadedMaps.Count} beatmaps.");
     }
 
-    /// <summary>
-    /// Crée un item dans la liste pour une beatmap.
-    /// </summary>
     private void CreateMapItem(BeatMapData map, string filePath)
     {
         if (mapListContent == null) return;
@@ -104,7 +88,6 @@ public class MapSelectUI : MonoBehaviour
         }
         else
         {
-            // Créer un bouton basique si pas de prefab
             item = new GameObject($"MapItem_{map.songName}");
             item.transform.SetParent(mapListContent, false);
 
@@ -116,7 +99,6 @@ public class MapSelectUI : MonoBehaviour
             var image = item.AddComponent<Image>();
             image.color = new Color(0.15f, 0.15f, 0.25f, 0.9f);
 
-            // Texte
             var textGO = new GameObject("Text");
             textGO.transform.SetParent(item.transform, false);
             var text = textGO.AddComponent<TextMeshProUGUI>();
@@ -132,7 +114,6 @@ public class MapSelectUI : MonoBehaviour
             rectText.offsetMax = Vector2.zero;
         }
 
-        // Assigner le callback
         Button btn = item.GetComponent<Button>();
         if (btn != null)
         {
@@ -141,9 +122,6 @@ public class MapSelectUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Sélectionne une beatmap.
-    /// </summary>
     private void SelectMap(BeatMapData map)
     {
         selectedMap = map;
@@ -158,19 +136,14 @@ public class MapSelectUI : MonoBehaviour
             playSelectedButton.interactable = true;
     }
 
-    /// <summary>
-    /// Lance la partie avec la map sélectionnée.
-    /// </summary>
     private void OnPlaySelected()
     {
         if (selectedMap == null) return;
 
-        // Passer la beatmap au GameManager via static
         GameManager.SelectedBeatMap = selectedMap;
         GameManager.SelectedMusicPath = Path.Combine(
             Application.persistentDataPath, "Music", selectedMap.musicFileName);
 
-        // Charger la scène de jeu
         SceneManager.LoadScene("Game");
     }
 }
