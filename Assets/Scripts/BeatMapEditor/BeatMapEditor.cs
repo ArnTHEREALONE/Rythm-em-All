@@ -17,12 +17,17 @@ public class BeatMapEditor : MonoBehaviour
     [SerializeField] private float currentBeat;
     [SerializeField] private int selectedLane;
 
+    [Header("=== Configuration ===")]
+    [Tooltip("Nombre de lanes (= nombre de spawners dans la scène Game)")]
+    public int laneCount = 12;
+
     [Header("=== Références ===")]
     public EditorTimeline timeline;
     public EditorGrid grid;
     public EditorControls controls;
     public EditorMetronome metronome;
     public EditorMusicLibrary musicLibrary;
+    public EditorGestionPanel gestionPanel;
     public MusicDatabase musicDatabase;
 
     /// <summary>BeatMap en cours d'édition.</summary>
@@ -78,7 +83,7 @@ public class BeatMapEditor : MonoBehaviour
     }
 
     /// <summary>
-    /// Charge une beatmap depuis un fichier JSON.
+    /// Charge une beatmap depuis un fichier JSON (chemin complet).
     /// </summary>
     public void LoadMap(string filePath)
     {
@@ -112,17 +117,30 @@ public class BeatMapEditor : MonoBehaviour
     }
 
     /// <summary>
-    /// Sauvegarde la beatmap en JSON.
+    /// Sauvegarde la beatmap en JSON avec le nom actuel de songName.
     /// </summary>
     public void SaveMap()
     {
         if (currentMap == null) return;
+        SaveMapWithName(currentMap.songName);
+    }
+
+    /// <summary>
+    /// Sauvegarde la beatmap en JSON avec un nom personnalisé.
+    /// Appelé par EditorGestionPanel.
+    /// </summary>
+    public void SaveMapWithName(string mapName)
+    {
+        if (currentMap == null) return;
+
+        // Mettre à jour le nom dans la beatmap
+        currentMap.songName = mapName;
 
         string dir = Path.Combine(Application.persistentDataPath, "BeatMaps");
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir);
 
-        string safeName = currentMap.songName.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
+        string safeName = mapName.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
         string filePath = Path.Combine(dir, safeName + ".json");
 
         string json = currentMap.ToJson();
@@ -145,6 +163,7 @@ public class BeatMapEditor : MonoBehaviour
 
     /// <summary>
     /// Sélectionne une musique depuis le MusicDatabase.
+    /// Crée une timeline vide pour cette musique.
     /// </summary>
     public void SelectMusic(MusicEntry entry)
     {
@@ -155,6 +174,10 @@ public class BeatMapEditor : MonoBehaviour
         currentMap.songName = entry.displayName;
         currentMap.bpm = entry.bpm;
         currentMap.songOffset = entry.songOffset;
+
+        // Réinitialiser la position
+        currentBeat = 0f;
+        isPlaying = false;
 
         RefreshUI();
     }
@@ -182,6 +205,33 @@ public class BeatMapEditor : MonoBehaviour
     }
 
     /// <summary>
+    /// Place une note à une position spécifique (beat + lane).
+    /// Utilisé par le drag & drop sur la timeline.
+    /// </summary>
+    public void PlaceNoteAt(float beat, int lane, EnemyInputType inputType)
+    {
+        if (currentMap == null) return;
+        if (lane < 0 || lane >= laneCount) return;
+
+        // Snapper sur le beat le plus proche
+        float snappedBeat = Mathf.Round(beat);
+
+        BeatNote existing = currentMap.notes.Find(n =>
+            Mathf.Approximately(n.beatTime, snappedBeat) && n.spawnerIndex == lane);
+
+        if (existing != null)
+        {
+            currentMap.notes.Remove(existing);
+        }
+
+        BeatNote note = new BeatNote(snappedBeat, lane, inputType);
+        currentMap.notes.Add(note);
+        currentMap.notes.Sort((a, b) => a.beatTime.CompareTo(b.beatTime));
+
+        RefreshUI();
+    }
+
+    /// <summary>
     /// Supprime la note à la position actuelle.
     /// </summary>
     public void DeleteNoteAtCursor()
@@ -196,6 +246,16 @@ public class BeatMapEditor : MonoBehaviour
             currentMap.notes.Remove(note);
             RefreshUI();
         }
+    }
+
+    /// <summary>
+    /// Supprime une note spécifique (utilisé par le drag & drop).
+    /// </summary>
+    public void DeleteNote(BeatNote note)
+    {
+        if (currentMap == null || note == null) return;
+        currentMap.notes.Remove(note);
+        RefreshUI();
     }
 
     /// <summary>
@@ -215,11 +275,26 @@ public class BeatMapEditor : MonoBehaviour
     }
 
     /// <summary>
+    /// Navigation : aller directement à un beat précis.
+    /// </summary>
+    public void GoToBeat(float beat)
+    {
+        currentBeat = Mathf.Max(0f, beat);
+        RefreshUI();
+
+        if (isPlaying && FMODAudioManager.Instance != null && currentMap != null)
+        {
+            float time = currentMap.BeatToSeconds(currentBeat);
+            FMODAudioManager.Instance.SeekToSeconds(time);
+        }
+    }
+
+    /// <summary>
     /// Navigation : changer de lane.
     /// </summary>
     public void MoveLane(int delta)
     {
-        selectedLane = Mathf.Max(0, selectedLane + delta);
+        selectedLane = Mathf.Clamp(selectedLane + delta, 0, laneCount - 1);
         RefreshUI();
     }
 

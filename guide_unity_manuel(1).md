@@ -271,23 +271,23 @@ Créer 4 cubes fins autour de l'arène :
 ### 5.4 Spawners
 
 > [!IMPORTANT]
-> Placer les spawners sur les bords de l'arène (8 minimum, 2 par côté).
+> Placer **12 spawners** sur les bords de l'arène (**3 par côté**).
 
 Pour chaque spawner :
 
-1. `GameObject > Create Empty` → nommer `Spawner_Top_0` etc.
+1. `GameObject > Create Empty` → nommer `Spawner_Top_0`, `Spawner_Top_1`, `Spawner_Top_2`, etc.
 2. Ajouter le script `EnemySpawner.cs`
 3. Positionner **juste en dehors** de l'arène :
 
-| Côté | Positions (2 par côté) | Direction (vers le centre) |
+| Côté | Positions (3 par côté) | Direction (vers le centre) |
 |------|-------------------------------|----------------------|
-| **Haut** | `(-5, 0, 12)`, `(5, 0, 12)` | `(0, 0, -1)` |
-| **Bas** | `(-5, 0, -12)`, `(5, 0, -12)` | `(0, 0, 1)` |
-| **Gauche** | `(-12, 0, 5)`, `(-12, 0, -5)` | `(1, 0, 0)` |
-| **Droite** | `(12, 0, 5)`, `(12, 0, -5)` | `(-1, 0, 0)` |
+| **Haut** | `(-7, 0, 12)`, `(0, 0, 12)`, `(7, 0, 12)` | `(0, 0, -1)` |
+| **Bas** | `(-7, 0, -12)`, `(0, 0, -12)`, `(7, 0, -12)` | `(0, 0, 1)` |
+| **Gauche** | `(-12, 0, 7)`, `(-12, 0, 0)`, `(-12, 0, -7)` | `(1, 0, 0)` |
+| **Droite** | `(12, 0, 7)`, `(12, 0, 0)`, `(12, 0, -7)` | `(-1, 0, 0)` |
 
 4. Dans l'Inspector :
-   - `Spawner Index` : 0 à 7
+   - `Spawner Index` : **0 à 11**
    - `Spawn Direction` : la direction correspondante
 5. Regrouper sous un parent vide `"Spawners"`
 
@@ -422,72 +422,425 @@ MainMenuCanvas
 
 ---
 
-## 7 — Scène Editor — Setup
+## 7 — Scène Editor — Setup (Guide détaillé pas-à-pas)
 
-### 7.1 Managers
+> [!IMPORTANT]
+> **Prérequis** : avant de commencer cette section, tu dois avoir :
+> - FMOD installé et configuré (sections 1-2)
+> - Les events musique créés dans FMOD Studio et les banks buildées (section 2.3-2.5)
+> - Le `MusicDatabase.asset` ScriptableObject rempli avec tes musiques (section 9.4)
+> - TextMeshPro importé (section 10.1)
 
-| GameObject | Script |
-|-----------|--------|
-| **EditorManager** | `BeatMapEditor.cs` |
-| **FMODAudioManager** | `FMODAudioManager.cs` |
+### 7.0 Architecture de l'éditeur — Vue d'ensemble
 
-### 7.2 UI Canvas
+L'éditeur est composé de **4 panneaux** répartis sur **3 plans de profondeur** :
+
+```
+┌─[← Menu]──────────────────────────────────────────────────────┐
+│  PREMIER PLAN — Navigation Panel (haut de l'écran)             │
+│  [◀◀] [◀] [▶/⏸] [▶] [▶▶]    Beat: 12.0    00:05   [Metro ☐] │
+├──────┬─────────────────────────────────────────────────┬───────┤
+│ [☰]  │  DERNIER PLAN — Timeline Panel (centre)         │  [♫]  │
+│      │  ┌───────────────────────────────────────────┐  │       │
+│ G    │  │ 12 lanes horizontales × beat markers      │  │  M    │
+│ E    │  │ Notes = ronds colorés snap sur grille     │  │  U    │
+│ S    │  │ Grabbable horizontalement                 │  │  S    │
+│ T    │  └───────────────────────────────────────────┘  │  I    │
+│ I    │  [════════ mini-slider position ════════]       │  C    │
+│ O    │                                                 │       │
+│ N    │  (caché hors écran par défaut ←)                │  (→)  │
+└──────┴─────────────────────────────────────────────────┴───────┘
+```
+
+- **Timeline Panel** (dernier plan, centre) : toujours visible, occupe tout l'écran
+- **Gestion Panel** (second plan, gauche) : coulisse depuis le bord gauche via bouton `[☰]`
+- **Music Selection Panel** (second plan, droite) : coulisse depuis le bord droit via bouton `[♫]`
+- **Navigation Panel** (premier plan, haut) : toujours visible, fixe en haut
+
+---
+
+### 7.1 Étape 1 — Créer les GameObjects Managers
+
+Dans la scène `Editor.unity`, créer **2 GameObjects vides** :
+
+1. `GameObject > Create Empty` → nommer **`EditorManager`**
+2. `GameObject > Create Empty` → nommer **`FMODAudioManager`**
+
+**Sur `EditorManager`**, ajouter ces scripts (bouton `Add Component` dans l'Inspector) :
+
+| Script à ajouter | Comment |
+|---|---|
+| `BeatMapEditor.cs` | Clic sur `Add Component` → taper `BeatMapEditor` → sélectionner |
+| `EditorMetronome.cs` | Clic sur `Add Component` → taper `EditorMetronome` → sélectionner |
+
+**Sur `FMODAudioManager`**, ajouter :
+
+| Script à ajouter | Comment |
+|---|---|
+| `FMODAudioManager.cs` | `Add Component` → taper `FMODAudioManager` → sélectionner |
+
+---
+
+### 7.2 Étape 2 — Caméra et FMOD Listener
+
+1. Sélectionner la **Main Camera** dans la hiérarchie
+2. Dans l'Inspector, trouver le composant `Audio Listener`
+3. **Clic droit** dessus → `Remove Component`
+4. `Add Component` → taper `Studio Listener` → sélectionner **`FMOD Studio Listener`**
+
+---
+
+### 7.3 Étape 3 — Créer le Canvas principal
+
+1. `GameObject > UI > Canvas` → nommer **`EditorCanvas`**
+2. Dans l'Inspector du Canvas, configurer le **Canvas Scaler** :
+
+| Paramètre | Valeur |
+|---|---|
+| UI Scale Mode | `Scale With Screen Size` |
+| Reference Resolution | `1920 × 1080` |
+| Match Width Or Height | `0.5` |
+
+3. Vérifier qu'un **EventSystem** existe dans la hiérarchie (créé automatiquement avec le Canvas). S'il n'a pas de composant `Input System UI Input Module`, ajouter le.
+
+---
+
+### 7.4 Étape 4 — Timeline Panel (dernier plan, centre)
+
+C'est le panneau le plus « au fond » — il occupe tout l'écran.
+
+#### 7.4.1 Créer la structure
+
+Sous `EditorCanvas`, créer cette hiérarchie :
 
 ```
 EditorCanvas
-├── TopBar (Panel horizontal)
-│   ├── NewMapButton
-│   ├── LoadMapButton
-│   ├── SaveMapButton
-│   ├── MusicLibraryButton      ← Ouvre la bibliothèque
-│   └── BackToMenuButton
-├── MusicInfoPanel
-│   ├── MusicNameText (TextMeshPro)
-│   ├── BPMInputField (InputField - TMP)
-│   └── MetronomeToggle (Toggle)
-├── TimelinePanel
-│   ├── TimelineSlider (pleine largeur)
-│   ├── CurrentBeatText (TextMeshPro)
-│   ├── CurrentTimeText (TextMeshPro)
-│   └── TransportControls (Panel horizontal)
-│       ├── PrevHalfBeatButton ("<½")
-│       ├── PrevBeatButton ("<<")
-│       ├── PlayPauseButton ("▶/⏸")
-│       ├── NextBeatButton (">>")
-│       └── NextHalfBeatButton ("½>")
-├── GridPanel (zone principale)
-│   └── GridArea (RectTransform)
-│       → Rendu par EditorGrid.cs
-│       → Colonnes = lanes, Lignes = beats
-│       → Notes = blocs colorés par type d'input
-├── LaneLabels (Panel horizontal)
-│   └── Un TextMeshPro par lane ("Top-0", "Right-1", etc.)
-├── MusicLibraryPanel (désactivé par défaut)
-│   ├── MusicListScrollView
-│   │   └── Content → rempli par EditorMusicLibrary.cs
-│   ├── SelectedMusicText (TextMeshPro)
-│   └── SelectButton
-└── StatusBar (en bas)
-    └── StatusText ("Map loaded", "Saved!", etc.)
+└── TimelinePanel (UI > Panel)
+    ├── TimelineViewport (UI > Panel)
+    │   └── TimelineBand (UI > Image)
+    ├── GridArea (UI > Panel, transparent)
+    ├── CurrentBeatText (UI > Text - TextMeshPro)
+    ├── CurrentTimeText (UI > Text - TextMeshPro)
+    └── MiniSlider (UI > Slider)
 ```
 
-### 7.3 Scripts à attacher
+**Comment créer chaque élément :**
 
-| GO / Panel | Script | Références à assigner |
-|-----------|--------|----------------------|
-| EditorManager | `BeatMapEditor.cs` | timeline, grid, controls, metronome, musicLibrary, musicDatabase |
-| TimelinePanel | `EditorTimeline.cs` | timelineSlider, BeatText, TimeText |
-| GridPanel | `EditorGrid.cs` | gridArea |
-| TransportControls | `EditorControls.cs` | boutons transport, bpmInputField, metronomeToggle |
-| EditorManager | `EditorMetronome.cs` | metronomeClick → `event:/SFX/MetronomeClick`, metronomeAccent → `event:/SFX/MetronomeAccent` |
-| MusicLibraryPanel | `EditorMusicLibrary.cs` | listContent, selectButton, selectedMusicText, **musicDatabase → drag MusicDatabase.asset** |
+1. **TimelinePanel** : Clic droit sur `EditorCanvas` → `UI > Panel` → renommer `TimelinePanel`
+   - Anchor : `Stretch-Stretch` (remplir tout le Canvas)
+   - Left/Right/Top/Bottom : `0, 0, 60, 40` (marge 60px en haut pour le Navigation Panel, 40px en bas pour le slider)
+   - Image Color : `#1A1A2E` (bleu sombre)
 
-> [!IMPORTANT]
-> **EditorMusicLibrary** a besoin d'une référence au **MusicDatabase** ScriptableObject.
-> Glisser `MusicDatabase.asset` dans le champ `musicDatabase` dans l'Inspector.
+2. **TimelineViewport** : Clic droit sur `TimelinePanel` → `UI > Panel` → renommer `TimelineViewport`
+   - Anchor : `Stretch-Stretch`, tous offsets à `0`
+   - Cocher `Mask` component : `Add Component > Mask` (pour clipper la bande)
+   - Image Color : transparent `(0,0,0,0)`
 
-### 7.4 FMOD Studio Listener
-- Sur la Main Camera : remplacer `AudioListener` par `FMOD Studio Listener`
+3. **TimelineBand** : Clic droit sur `TimelineViewport` → `UI > Image` → renommer `TimelineBand`
+   - Anchor : `Middle-Left`
+   - Pivot : `(0, 0.5)`
+   - Width : `5000` (sera recalculé par le script), Height : remplir le parent
+   - Image Color : `#1E2235`
+
+4. **GridArea** : Clic droit sur `TimelinePanel` → `UI > Panel` → renommer `GridArea`
+   - Anchor : `Stretch-Stretch`, tous offsets à `0`
+   - Image Color : transparent `(0,0,0,0)`
+
+5. **CurrentBeatText** : Clic droit sur `TimelinePanel` → `UI > Text - TextMeshPro` → renommer `CurrentBeatText`
+   - Anchor : `Top-Right`, Position : `(-100, -15)`
+   - Font Size : `18`, Color : blanc, texte : `Beat: 0.0`
+
+6. **CurrentTimeText** : Clic droit sur `TimelinePanel` → `UI > Text - TextMeshPro` → renommer `CurrentTimeText`
+   - Anchor : `Top-Right`, Position : `(-20, -15)`
+   - Font Size : `18`, Color : blanc, texte : `00:00`
+
+7. **MiniSlider** : Clic droit sur `TimelinePanel` → `UI > Slider` → renommer `MiniSlider`
+   - Anchor : `Bottom-Stretch`
+   - Height : `20`, Left : `20`, Right : `20`, Bottom : `-30`
+   - Min Value : `0`, Max Value : `1`
+
+#### 7.4.2 Attacher les scripts
+
+Sélectionner **`TimelinePanel`** → `Add Component` → `EditorTimeline`
+
+Dans l'Inspector de `EditorTimeline`, brancher les champs :
+
+| Champ Inspector | Glisser depuis la hiérarchie |
+|---|---|
+| `Timeline Band` | `TimelinePanel > TimelineViewport > TimelineBand` |
+| `Viewport` | `TimelinePanel > TimelineViewport` |
+| `Mini Slider` | `TimelinePanel > MiniSlider` |
+| `Current Beat Text` | `TimelinePanel > CurrentBeatText` |
+| `Current Time Text` | `TimelinePanel > CurrentTimeText` |
+| `Pixels Per Beat` | `40` (valeur par défaut, ajustable) |
+| `Lane Count` | `12` |
+
+Sélectionner **`GridArea`** → `Add Component` → `EditorGrid`
+
+Dans l'Inspector de `EditorGrid` :
+
+| Champ Inspector | Valeur / Référence |
+|---|---|
+| `Lane Count` | `12` |
+| `Visible Beats` | `16` |
+| `Grid Area` | Glisser **`GridArea`** lui-même |
+| `Note Prefab` | `null` pour l'instant (voir section 7.8 pour le prefab NoteCircle) |
+| `Cursor Prefab` | `null` (créé dynamiquement) |
+| `Note Diameter` | `28` |
+
+---
+
+### 7.5 Étape 5 — Music Selection Panel (second plan, droite)
+
+Ce panneau est **caché hors de l'écran à droite** par défaut. Un bouton `[♫]` visible sur le bord droit permet de le faire coulisser.
+
+#### 7.5.1 Créer la structure
+
+Sous `EditorCanvas` :
+
+```
+EditorCanvas
+└── MusicPanelContainer (empty GO avec RectTransform)
+    ├── MusicSelectionPanel (UI > Panel)
+    │   └── MusicScrollView (UI > Scroll View)
+    │       └── Viewport
+    │           └── Content (Vertical Layout Group)
+    └── MusicToggleButton (UI > Button - TextMeshPro)
+```
+
+1. **MusicPanelContainer** : Clic droit sur `EditorCanvas` → `Create Empty` → renommer
+   - Anchor : `Right-Stretch`
+   - Pivot : `(1, 0.5)`
+   - Width : `350`, Top : `60`, Bottom : `0`
+
+2. **MusicSelectionPanel** : Clic droit sur `MusicPanelContainer` → `UI > Panel`
+   - Anchor : `Stretch-Stretch`, tous offsets à `0`
+   - Image Color : `#151929` (bleu très sombre)
+
+3. **MusicScrollView** : Clic droit sur `MusicSelectionPanel` → `UI > Scroll View`
+   - Anchor : `Stretch-Stretch`, offset `10` de chaque côté
+   - Sur le `Content` (enfant de Viewport) : `Add Component > Vertical Layout Group`
+     - Spacing : `8`, Padding : `5,5,5,5`
+   - Sur le `Content` : `Add Component > Content Size Fitter` → Vertical Fit : `Preferred Size`
+
+4. **MusicToggleButton** : Clic droit sur `MusicPanelContainer` → `UI > Button - TextMeshPro`
+   - Anchor : `Left-Middle` (bord gauche du container)
+   - Position : `(-30, 0)`, Width : `40`, Height : `80`
+   - Texte : `♫`, Font Size : `24`
+   - Image Color : `#0D47A1`
+
+#### 7.5.2 Attacher les scripts
+
+Sur **`MusicSelectionPanel`** → `Add Component` → `EditorMusicLibrary`
+
+| Champ Inspector | Glisser depuis la hiérarchie |
+|---|---|
+| `List Content` | `MusicScrollView > Viewport > Content` |
+| `Music Item Prefab` | `null` (créé dynamiquement par le script) |
+| `Music Database` | Glisser **`MusicDatabase.asset`** depuis `Assets/Data/` (ou `Assets/Scriptable Objects/`) |
+
+Sur **`MusicPanelContainer`** → `Add Component` → `EditorSlidingPanel`
+
+| Champ Inspector | Valeur / Référence |
+|---|---|
+| `Direction` | `Right` |
+| `Panel Width` | `350` |
+| `Slide Duration` | `0.3` |
+| `Panel Rect` | Glisser **`MusicPanelContainer`** lui-même |
+| `Toggle Button` | Glisser **`MusicToggleButton`** |
+| `Toggle Button Text` | Le composant TextMeshPro dans le bouton |
+| `Open Icon` | `♫` |
+| `Close Icon` | `✕` |
+
+---
+
+### 7.6 Étape 6 — Gestion Panel (second plan, gauche)
+
+Même principe que le Music Panel mais à gauche. Contient Save/Load.
+
+#### 7.6.1 Créer la structure
+
+```
+EditorCanvas
+└── GestionPanelContainer (empty GO avec RectTransform)
+    ├── GestionPanel (UI > Panel)
+    │   ├── SaveSection (empty GO)
+    │   │   ├── SaveLabel (TextMeshPro : "Nom de la beatmap :")
+    │   │   ├── SaveNameInput (UI > Input Field - TextMeshPro)
+    │   │   └── SaveButton (UI > Button : "💾 Sauvegarder")
+    │   ├── LoadSection (empty GO)
+    │   │   ├── LoadLabel (TextMeshPro : "Charger une beatmap :")
+    │   │   ├── LoadNameInput (UI > Input Field - TextMeshPro)
+    │   │   └── LoadButton (UI > Button : "📂 Charger")
+    │   └── StatusText (TextMeshPro)
+    └── GestionToggleButton (UI > Button : "☰")
+```
+
+1. **GestionPanelContainer** : `Create Empty` sous `EditorCanvas`
+   - Anchor : `Left-Stretch`
+   - Pivot : `(0, 0.5)`
+   - Width : `320`, Top : `60`, Bottom : `0`
+
+2. **GestionPanel** : `UI > Panel` sous le container
+   - Anchor : `Stretch-Stretch`, offsets à `0`
+   - Image Color : `#151929`
+   - `Add Component > Vertical Layout Group` → Spacing : `15`, Padding : `15,15,15,15`
+
+3. Créer les **SaveSection** et **LoadSection** comme des empty GameObjects avec chacun un `Vertical Layout Group` (spacing `6`), puis ajouter les labels, inputs et boutons comme enfants.
+
+4. **GestionToggleButton** : `UI > Button - TextMeshPro`
+   - Anchor : `Right-Middle` (bord droit du container)
+   - Position : `(30, 0)`, Width : `40`, Height : `80`
+   - Texte : `☰`, Font Size : `24`
+   - Image Color : `#0D47A1`
+
+#### 7.6.2 Attacher les scripts
+
+Sur **`GestionPanel`** → `Add Component` → `EditorGestionPanel`
+
+| Champ Inspector | Glisser depuis la hiérarchie |
+|---|---|
+| `Save Name Input` | `SaveSection > SaveNameInput` |
+| `Save Button` | `SaveSection > SaveButton` |
+| `Load Name Input` | `LoadSection > LoadNameInput` |
+| `Load Button` | `LoadSection > LoadButton` |
+| `Status Text` | `GestionPanel > StatusText` |
+
+Sur **`GestionPanelContainer`** → `Add Component` → `EditorSlidingPanel`
+
+| Champ Inspector | Valeur / Référence |
+|---|---|
+| `Direction` | `Left` |
+| `Panel Width` | `320` |
+| `Slide Duration` | `0.3` |
+| `Panel Rect` | Glisser **`GestionPanelContainer`** |
+| `Toggle Button` | Glisser **`GestionToggleButton`** |
+| `Open Icon` | `☰` |
+| `Close Icon` | `✕` |
+
+---
+
+### 7.7 Étape 7 — Navigation Panel (premier plan, haut)
+
+Fixe en haut de l'écran, au-dessus de tout.
+
+#### 7.7.1 Créer la structure
+
+```
+EditorCanvas
+└── NavigationPanel (UI > Panel)
+    ├── BackToMenuButton (UI > Button : "← Menu")
+    ├── TransportGroup (empty GO, Horizontal Layout Group)
+    │   ├── PrevTwoBeatsBtn (Button : "◀◀")
+    │   ├── PrevBeatBtn (Button : "◀")
+    │   ├── PlayPauseBtn (Button : "▶")
+    │   │   └── PlayPauseText (TextMeshPro)
+    │   ├── NextBeatBtn (Button : "▶")
+    │   └── NextTwoBeatsBtn (Button : "▶▶")
+    └── MetronomeToggle (UI > Toggle : "Métronome")
+```
+
+1. **NavigationPanel** : `UI > Panel` sous `EditorCanvas`
+   - Anchor : `Top-Stretch`
+   - Height : `55`, Left : `0`, Right : `0`, Top : `0`
+   - Image Color : `#0F1120` avec alpha `0.95`
+
+2. **BackToMenuButton** : `UI > Button` enfant de NavigationPanel
+   - Anchor : `Left-Middle`
+   - Position : `(70, 0)`, Width : `120`, Height : `36`
+   - Texte : `← Menu`
+
+3. **TransportGroup** : `Create Empty` enfant de NavigationPanel
+   - Anchor : `Middle-Center`
+   - Width : `300`, Height : `40`
+   - `Add Component > Horizontal Layout Group` → Spacing : `8`, Child Alignment : `Middle Center`
+   - Créer 5 boutons enfants : `PrevTwoBeatsBtn`, `PrevBeatBtn`, `PlayPauseBtn`, `NextBeatBtn`, `NextTwoBeatsBtn`
+   - Taille de chaque bouton : `50 × 36`
+   - Textes respectifs : `◀◀`, `◀`, `▶`, `▶`, `▶▶`
+   - Sur `PlayPauseBtn` : renommer le texte enfant en `PlayPauseText`
+
+4. **MetronomeToggle** : `UI > Toggle` enfant de NavigationPanel
+   - Anchor : `Right-Middle`
+   - Position : `(-80, 0)`, Width : `140`, Height : `30`
+   - Label : `Métronome`
+
+#### 7.7.2 Attacher le script
+
+Sur **`NavigationPanel`** → `Add Component` → `EditorControls`
+
+| Champ Inspector | Glisser depuis la hiérarchie |
+|---|---|
+| `Prev Two Beats Button` | `TransportGroup > PrevTwoBeatsBtn` |
+| `Prev Beat Button` | `TransportGroup > PrevBeatBtn` |
+| `Play Pause Button` | `TransportGroup > PlayPauseBtn` |
+| `Next Beat Button` | `TransportGroup > NextBeatBtn` |
+| `Next Two Beats Button` | `TransportGroup > NextTwoBeatsBtn` |
+| `Play Pause Text` | `PlayPauseBtn > PlayPauseText` |
+| `Metronome Toggle` | `NavigationPanel > MetronomeToggle` |
+| `Back To Menu Button` | `NavigationPanel > BackToMenuButton` |
+
+---
+
+### 7.8 Étape 8 — Prefab NoteCircle (optionnel mais recommandé)
+
+Le prefab pour les ronds colorés sur la timeline.
+
+1. `GameObject > UI > Image` → renommer `NoteCircle`
+2. Width : `28`, Height : `28`
+3. **Sprite** : utiliser le sprite `Knob` intégré à Unity (`UI > Knob`) pour un cercle. Pour le trouver : dans le champ `Source Image` de l'Image, cliquer le petit rond → chercher `Knob`
+4. Image Type : `Simple`
+5. Color : blanc (la couleur sera changée par le script selon le type)
+6. Glisser `NoteCircle` dans `Assets/Prefabs/UI/` pour en faire un prefab
+7. Supprimer l'instance de la scène
+8. Dans l'Inspector de `EditorGrid` (sur `GridArea`) : glisser `NoteCircle.prefab` dans le champ `Note Prefab`
+
+---
+
+### 7.9 Étape 9 — Brancher le BeatMapEditor (fil conducteur)
+
+Sélectionner **`EditorManager`** dans la hiérarchie. Dans le composant `BeatMapEditor`, brancher tous les champs :
+
+| Champ Inspector | Glisser depuis la hiérarchie |
+|---|---|
+| `Lane Count` | `12` |
+| `Timeline` | `EditorCanvas > TimelinePanel` (le GO qui porte `EditorTimeline.cs`) |
+| `Grid` | `EditorCanvas > TimelinePanel > GridArea` (le GO qui porte `EditorGrid.cs`) |
+| `Controls` | `EditorCanvas > NavigationPanel` (le GO qui porte `EditorControls.cs`) |
+| `Metronome` | `EditorManager` lui-même (le composant `EditorMetronome` est dessus) |
+| `Music Library` | `EditorCanvas > MusicPanelContainer > MusicSelectionPanel` |
+| `Gestion Panel` | `EditorCanvas > GestionPanelContainer > GestionPanel` |
+| `Music Database` | Glisser **`MusicDatabase.asset`** depuis le Project |
+
+Sur le composant **`EditorMetronome`** (sur `EditorManager`) :
+
+| Champ Inspector | Valeur |
+|---|---|
+| `Metronome Click` | `event:/SFX/MetronomeClick` (glisser depuis FMOD Event Browser) |
+| `Metronome Accent` | `event:/SFX/MetronomeAccent` (glisser depuis FMOD Event Browser) |
+| `Beats Per Measure` | `4` |
+| `Is Enabled` | décoché |
+
+---
+
+### 7.10 Checklist Éditeur ✅
+
+```
+[ ] EditorManager créé avec BeatMapEditor.cs + EditorMetronome.cs
+[ ] FMODAudioManager créé avec FMODAudioManager.cs
+[ ] AudioListener remplacé par FMOD Studio Listener sur la caméra
+[ ] EditorCanvas créé avec Canvas Scaler (1920×1080)
+[ ] TimelinePanel : EditorTimeline.cs branché (band, viewport, slider, textes)
+[ ] GridArea : EditorGrid.cs branché (laneCount=12, gridArea)
+[ ] MusicSelectionPanel : EditorMusicLibrary.cs + MusicDatabase.asset branché
+[ ] MusicPanelContainer : EditorSlidingPanel.cs (direction=Right, bouton ♫)
+[ ] GestionPanel : EditorGestionPanel.cs branché (inputs, boutons, status)
+[ ] GestionPanelContainer : EditorSlidingPanel.cs (direction=Left, bouton ☰)
+[ ] NavigationPanel : EditorControls.cs branché (5 boutons + toggle + back)
+[ ] NoteCircle prefab créé et assigné dans EditorGrid
+[ ] BeatMapEditor : toutes les références branchées (timeline, grid, etc.)
+[ ] EditorMetronome : events FMOD assignés
+[ ] MusicDatabase.asset contient au moins une musique
+```
 
 ---
 
