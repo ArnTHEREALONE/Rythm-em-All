@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{14842b99-97ca-438e-8345-e1f8f68be866}">
+		<property name="note" />
+		<property name="assetPath">
+			<value>Through The Fire And Flames.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>439.27510204081631</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{59d0a401-e5a1-4796-a52e-837d7b79cf92}</destination>
+		</relationship>
+	</object>
+</objects>
