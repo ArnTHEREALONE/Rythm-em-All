@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 573c789119e93bd44b31a2da8d6440cd, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  baseScorePerKill: 100
+  baseScorePerKill: 0
   perfectScoreMultiplier: 50
   goodScoreMultiplier: 25
   tooLateScoreMultiplier: 0
