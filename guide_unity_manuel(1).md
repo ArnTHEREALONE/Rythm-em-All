@@ -375,50 +375,309 @@ Attacher `GameUI.cs` sur le Canvas ou un GO vide.
 
 ---
 
-## 6 — Scène MainMenu — Setup
+## 6 — Scène MainMenu — Setup (Guide détaillé pas-à-pas)
 
-### 6.1 Caméra
-- Laisser la caméra par défaut
-- **Remplacer** `AudioListener` par `FMOD Studio Listener`
+> [!IMPORTANT]
+> **Prérequis** : FMOD installé (sections 1-2), TextMeshPro importé (section 10.1), les 3 scènes créées (section 3).
 
-### 6.2 FMOD Audio Manager
-- Ajouter un GO vide **FMODAudioManager** avec `FMODAudioManager.cs`
-  - (ou le rendre `DontDestroyOnLoad` pour qu'il persiste entre les scènes)
+### 6.1 Étape 1 — Ouvrir la scène et préparer les Managers
 
-### 6.3 UI Canvas
+1. Dans le panneau **Project** (en bas), naviguer dans `Assets > Scenes`
+2. **Double-cliquer** sur `MainMenu.unity` pour ouvrir la scène
+3. Dans le panneau **Hierarchy** (à gauche), tu vois `Main Camera`, `Directional Light`, etc.
 
+#### Créer le FMODAudioManager :
+1. Menu `GameObject > Create Empty` → un nouvel objet apparaît dans la Hierarchy
+2. **Cliquer une fois** dessus dans la Hierarchy → le nom est sélectionné → taper `FMODAudioManager` → appuyer **Entrée**
+3. Dans le panneau **Inspector** (à droite), cliquer sur le bouton `Add Component`
+4. Dans la barre de recherche qui apparaît, taper `FMODAudioManager`
+5. Cliquer sur `FMODAudioManager` dans les résultats → le script est ajouté
+
+#### Remplacer l'AudioListener par FMOD Studio Listener :
+1. Cliquer sur **Main Camera** dans la Hierarchy
+2. Dans l'Inspector, trouver le composant `Audio Listener`
+3. **Clic droit** sur le titre `Audio Listener` → `Remove Component`
+4. Cliquer `Add Component` → taper `Studio Listener` → sélectionner **`FMOD Studio Listener`**
+
+---
+
+### 6.2 Étape 2 — Créer le Canvas principal
+
+1. Menu `GameObject > UI > Canvas` → un objet `Canvas` apparaît dans la Hierarchy
+2. **Renommer** le Canvas : clic droit dessus → `Rename` → taper `MainMenuCanvas` → **Entrée**
+3. Un **EventSystem** est automatiquement créé. Si le composant `Input System UI Input Module` n'est pas dessus, cliquer sur `EventSystem` → `Add Component` → taper `Input System UI Input Module` → sélectionner
+
+#### Configurer le Canvas Scaler :
+1. Sélectionner `MainMenuCanvas` dans la Hierarchy
+2. Dans l'Inspector, trouver le composant **Canvas Scaler**
+3. Régler les valeurs :
+
+| Paramètre | Valeur |
+|---|---|
+| UI Scale Mode | `Scale With Screen Size` |
+| Reference Resolution X | `1920` |
+| Reference Resolution Y | `1080` |
+| Match Width Or Height | `0.5` |
+
+---
+
+### 6.3 Étape 3 — Créer le MainPanel (panneau des boutons principaux)
+
+C'est le panneau affiché par défaut avec PLAY, EDITOR, OPTIONS, QUIT.
+
+1. **Clic droit** sur `MainMenuCanvas` dans la Hierarchy → `UI > Panel` → renommer `MainPanel`
+2. Dans l'Inspector du `MainPanel`, configurer le **RectTransform** :
+   - Anchor Preset : cliquer sur le carré en haut à gauche → choisir `stretch-stretch` (le dernier en bas à droite, en maintenant **Alt**)
+   - Left : `0`, Right : `0`, Top : `0`, Bottom : `0` (remplit tout l'écran)
+3. Couleur du **Image** component : `#1A1A2E` (bleu sombre)
+
+#### Créer le titre :
+1. Clic droit sur `MainPanel` → `UI > Text - TextMeshPro` → renommer `TitleText`
+   - *(Si la popup "Import TMP Essentials" apparaît, cliquer **Import TMP Essentials**)*
+2. Dans l'Inspector :
+   - **RectTransform** : Anchor = `Top-Center`, Pos Y = `-120`, Width = `800`, Height = `120`
+   - **TextMeshPro** : Text = `Rythm'em All`, Font Size = `72`, Alignment = `Center`, Color = blanc
+
+#### Créer les 4 boutons :
+Pour chaque bouton, suivre cette procédure exacte :
+
+1. Clic droit sur `MainPanel` → `UI > Button - TextMeshPro` → renommer selon le tableau
+2. Configurer dans l'Inspector :
+
+| Nom du bouton | Texte affiché | Pos Y | Width | Height |
+|---|---|---|---|---|
+| `PlayButton` | `PLAY` | `-250` | `300` | `60` |
+| `EditorButton` | `EDITOR` | `-330` | `300` | `60` |
+| `OptionsButton` | `OPTIONS` | `-410` | `300` | `60` |
+| `QuitButton` | `QUIT` | `-490` | `300` | `60` |
+
+Pour chaque bouton :
+- **RectTransform** : Anchor = `Top-Center`, Pos X = `0`, Width et Height selon tableau
+- Déplier le bouton dans la Hierarchy (cliquer la flèche `▶`) → cliquer sur l'enfant `Text (TMP)` → changer le texte selon le tableau, Font Size = `28`
+
+---
+
+### 6.4 Étape 4 — Créer le MapSelectPanel (panneau de sélection des maps)
+
+> [!IMPORTANT]
+> Ce panneau s'affiche quand on clique sur PLAY. Il contient une **liste verticale scrollable** de cartes. Chaque carte affiche le nom de la map, la musique, le BPM, le highscore, et un bouton ▶ pour lancer directement.
+
+#### 6.4.1 Créer le panneau container
+
+1. **Clic droit** sur `MainMenuCanvas` dans la Hierarchy → `UI > Panel` → renommer `MapSelectPanel`
+2. Dans l'Inspector :
+   - **RectTransform** : Anchor = `stretch-stretch` (Alt + dernier preset en bas à droite)
+   - Left : `0`, Right : `0`, Top : `0`, Bottom : `0`
+   - Image Color : `#1A1A2E`
+3. **Désactiver** le panel : dans l'Inspector, **décocher la case** tout en haut à gauche à côté du nom `MapSelectPanel` (la checkbox active/inactive)
+
+> [!TIP]
+> Le panel est désactivé par défaut car il n'est visible que quand on clique sur PLAY. Le script `MainMenuUI.cs` l'active/désactive automatiquement.
+
+#### 6.4.2 Créer le titre du panneau
+
+1. Clic droit sur `MapSelectPanel` → `UI > Text - TextMeshPro` → renommer `MapSelectTitle`
+2. Inspector :
+   - **RectTransform** : Anchor = `Top-Center`, Pos Y = `-60`, Width = `600`, Height = `60`
+   - **TextMeshPro** : Text = `SÉLECTION DE MAP`, Font Size = `36`, Alignment = `Center`, Color = blanc
+
+#### 6.4.3 Créer le ScrollView (la liste scrollable)
+
+> [!IMPORTANT]
+> Le ScrollView est le composant clé. C'est lui qui permet de scroller la liste de maps quand il y en a beaucoup.
+
+1. Clic droit sur `MapSelectPanel` → `UI > Scroll View` → renommer `MapListScrollView`
+2. Dans l'Inspector du `MapListScrollView`, configurer le **RectTransform** :
+   - Anchor : `stretch-stretch`
+   - Left : `100`, Right : `100`, Top : `120`, Bottom : `80`
+   
+   *(Cela laisse 120px en haut pour le titre et 80px en bas pour le bouton retour)*
+
+3. Dans le composant **Scroll Rect** :
+   - **Horizontal** : **décocher** (on ne scroll que verticalement)
+   - **Vertical** : **cocher** ✅
+   - **Movement Type** : `Clamped`
+
+4. **Optionnel** : supprimer la scrollbar horizontale
+   - Dans la Hierarchy, déplier `MapListScrollView`
+   - Si tu vois `Scrollbar Horizontal`, **clic droit dessus → Delete**
+   - Dans le Scroll Rect du `MapListScrollView`, mettre le champ `Horizontal Scrollbar` à `None`
+
+#### 6.4.4 Configurer le Content (le parent des cartes)
+
+> [!IMPORTANT]
+> Le `Content` est le GameObject **à l'intérieur** du ScrollView. C'est le parent de toutes les cartes de map. Le script `MapSelectUI.cs` va y instancier les cartes dynamiquement.
+
+1. Dans la Hierarchy, **déplier** `MapListScrollView` → `Viewport` → cliquer sur **`Content`**
+2. Dans l'Inspector de `Content`, vérifier/ajouter ces composants :
+
+**RectTransform :**
+- Anchor : `Top-Stretch` (le preset en haut au centre avec les flèches horizontales)
+- Pivot : X = `0.5`, Y = `1`
+- Left : `0`, Right : `0`, Top : `0`
+
+**Ajouter `Vertical Layout Group`** (si pas déjà présent) :
+1. `Add Component` → taper `Vertical Layout Group` → sélectionner
+2. Régler :
+
+| Paramètre | Valeur |
+|---|---|
+| Padding Left | `10` |
+| Padding Right | `10` |
+| Padding Top | `10` |
+| Padding Bottom | `10` |
+| Spacing | `8` |
+| Child Alignment | `Upper Center` |
+| Control Child Size Width | ✅ coché |
+| Control Child Size Height | ❌ décoché |
+| Child Force Expand Width | ✅ coché |
+| Child Force Expand Height | ❌ décoché |
+
+**Ajouter `Content Size Fitter`** (si pas déjà présent) :
+1. `Add Component` → taper `Content Size Fitter` → sélectionner
+2. Régler :
+
+| Paramètre | Valeur |
+|---|---|
+| Horizontal Fit | `Unconstrained` |
+| Vertical Fit | `Preferred Size` |
+
+> [!TIP]
+> Le `Content Size Fitter` en mode `Preferred Size` fait que le Content grandit automatiquement quand on ajoute des cartes. C'est ce qui permet le scroll quand il y a beaucoup de maps.
+
+#### 6.4.5 Créer le bouton Retour
+
+1. Clic droit sur `MapSelectPanel` → `UI > Button - TextMeshPro` → renommer `MapSelectBackButton`
+2. Inspector :
+   - **RectTransform** : Anchor = `Bottom-Center`, Pos Y = `40`, Width = `200`, Height = `50`
+   - Déplier le bouton → cliquer `Text (TMP)` → Text = `RETOUR`, Font Size = `24`
+
+#### 6.4.6 Attacher le script MapSelectUI
+
+1. **Sélectionner `MapSelectPanel`** dans la Hierarchy
+2. `Add Component` → taper `MapSelectUI` → sélectionner
+3. Dans l'Inspector, le script `MapSelectUI` montre plusieurs champs à remplir :
+
+| Champ Inspector | Que glisser dedans | Comment |
+|---|---|---|
+| `Map List Content` | **`Content`** (enfant de `Viewport` dans le ScrollView) | Déplier `MapListScrollView > Viewport > Content` dans la Hierarchy, puis **glisser-déposer** `Content` dans ce champ |
+| `Map Card Prefab` | `null` (laisser vide) | Les cartes sont créées dynamiquement par le code, pas besoin de prefab |
+| `Back Button` | `MapSelectBackButton` | Glisser le bouton depuis la Hierarchy |
+
+> [!IMPORTANT]
+> **Le champ `Map List Content` est le plus important.** C'est ici que le script va créer les cartes de map. Si ce champ est vide, rien ne s'affichera !
+> Le chemin dans la Hierarchy est : `MainMenuCanvas > MapSelectPanel > MapListScrollView > Viewport > Content`
+
+La hiérarchie finale du `MapSelectPanel` dans Unity doit ressembler à ceci :
 ```
-MainMenuCanvas
-├── Background (UI > Image, couleur sombre)
-├── TitleText (TextMeshPro, "Rythm'em All", 96pt)
-├── ButtonPanel (Panel vertical layout)
-│   ├── PlayButton ("PLAY")
-│   ├── EditorButton ("EDITOR")
-│   ├── OptionsButton ("OPTIONS")
-│   └── QuitButton ("QUIT")
-├── MapSelectPanel (désactivé par défaut)
-│   ├── MapListScrollView (UI > Scroll View)
-│   │   └── Content → rempli par MapSelectUI.cs
-│   ├── MapInfoPanel
-│   │   ├── SelectedMapName (TextMeshPro)
-│   │   ├── SelectedMapBPM (TextMeshPro)
-│   │   ├── SelectedMapNotes (TextMeshPro)
-│   │   └── PlaySelectedButton
-│   └── BackButton
-└── OptionsPanel (désactivé par défaut)
-    ├── MasterVolumeSlider + Label
-    ├── MusicVolumeSlider + Label
-    ├── SFXVolumeSlider + Label
-    └── BackButton
+MapSelectPanel (désactivé par défaut)
+├── MapSelectTitle (Text - TextMeshPro : "SÉLECTION DE MAP")
+├── MapListScrollView (Scroll View)
+│   ├── Viewport
+│   │   └── Content  ← C'est CE GameObject qu'il faut glisser dans "Map List Content"
+│   │       └── (les cartes seront créées ici automatiquement par le script)
+│   └── Scrollbar Vertical
+└── MapSelectBackButton (Button : "RETOUR")
 ```
 
-### 6.4 Scripts
-- `MainMenuUI.cs` sur le Canvas
-- `MapSelectUI.cs` sur MapSelectPanel
-- `OptionsUI.cs` sur OptionsPanel
+---
 
-### 6.5 EventSystem
-- Vérifier qu'un `EventSystem` existe avec `InputSystemUIInputModule`
+### 6.5 Étape 5 — Créer le OptionsPanel
+
+1. Clic droit sur `MainMenuCanvas` → `UI > Panel` → renommer `OptionsPanel`
+2. RectTransform : `stretch-stretch`, Left/Right/Top/Bottom = `0`
+3. Image Color : `#1A1A2E`
+4. **Désactiver** le panel (décocher la case en haut de l'Inspector)
+
+#### Créer les sliders de volume :
+
+Pour chaque slider, répéter :
+
+1. Clic droit sur `OptionsPanel` → `UI > Slider` → renommer selon tableau
+
+| Nom | Pos Y | Label |
+|---|---|---|
+| `MasterVolumeSlider` | `-200` | "Master Volume" |
+| `MusicVolumeSlider` | `-280` | "Music Volume" |
+| `SFXVolumeSlider` | `-360` | "SFX Volume" |
+
+Pour chaque slider :
+- **RectTransform** : Anchor = `Top-Center`, Pos X = `0`, Width = `400`, Height = `30`
+- **Slider** : Min Value = `0`, Max Value = `1`, Value = `1`
+
+Pour chaque label :
+1. Clic droit sur `OptionsPanel` → `UI > Text - TextMeshPro` → renommer (ex: `MasterVolumeLabel`)
+2. Pos Y = même que le slider + 30, Font Size = `20`, Text = le nom du slider
+
+#### Bouton retour Options :
+1. Clic droit sur `OptionsPanel` → `UI > Button - TextMeshPro` → renommer `OptionsBackButton`
+2. Anchor = `Bottom-Center`, Pos Y = `40`, Width = `200`, Height = `50`, Text = `RETOUR`
+
+#### Attacher le script OptionsUI :
+1. **Sélectionner `OptionsPanel`** → `Add Component` → `OptionsUI`
+2. Glisser :
+
+| Champ Inspector | Que glisser dedans |
+|---|---|
+| `Master Volume Slider` | `MasterVolumeSlider` |
+| `Music Volume Slider` | `MusicVolumeSlider` |
+| `SFX Volume Slider` | `SFXVolumeSlider` |
+
+---
+
+### 6.6 Étape 6 — Attacher MainMenuUI et brancher les références
+
+> [!IMPORTANT]
+> C'est l'étape finale qui relie tout ensemble.
+
+1. **Sélectionner `MainMenuCanvas`** dans la Hierarchy
+2. `Add Component` → taper `MainMenuUI` → sélectionner
+3. Dans l'Inspector, le script `MainMenuUI` montre les champs suivants. **Glisser chaque élément depuis la Hierarchy** :
+
+| Champ Inspector | Que glisser dedans | Où le trouver dans la Hierarchy |
+|---|---|---|
+| `Main Panel` | `MainPanel` | `MainMenuCanvas > MainPanel` |
+| `Map Select Panel` | `MapSelectPanel` | `MainMenuCanvas > MapSelectPanel` |
+| `Options Panel` | `OptionsPanel` | `MainMenuCanvas > OptionsPanel` |
+| `Play Button` | `PlayButton` | `MainMenuCanvas > MainPanel > PlayButton` |
+| `Editor Button` | `EditorButton` | `MainMenuCanvas > MainPanel > EditorButton` |
+| `Options Button` | `OptionsButton` | `MainMenuCanvas > MainPanel > OptionsButton` |
+| `Quit Button` | `QuitButton` | `MainMenuCanvas > MainPanel > QuitButton` |
+| `Map Select Back Button` | `MapSelectBackButton` | `MainMenuCanvas > MapSelectPanel > MapSelectBackButton` |
+| `Options Back Button` | `OptionsBackButton` | `MainMenuCanvas > OptionsPanel > OptionsBackButton` |
+
+> [!WARNING]
+> Si un champ reste vide (affiche `None`), le bouton correspondant ne fonctionnera pas. Vérifier que chaque champ est rempli avant de tester.
+
+---
+
+### 6.7 Étape 7 — Comment ça marche (résumé du flow)
+
+```mermaid
+graph TD
+    A["▶ Clic PLAY"] --> B["MainPanel se cache"]
+    B --> C["MapSelectPanel s'active"]
+    C --> D["MapSelectUI.RefreshMapList() est appelé"]
+    D --> E["Scanne persistentDataPath/BeatMaps/*.json"]
+    E --> F["Pour chaque fichier JSON trouvé :<br/>crée une carte avec nom, musique,<br/>BPM, notes, highscore, bouton ▶"]
+    F --> G["L'utilisateur clique ▶ sur une carte"]
+    G --> H["GameManager.SelectedBeatMap = cette map"]
+    H --> I["Charge la scène Game"]
+```
+
+**Pour tester** :
+1. Crée au moins une beatmap dans l'éditeur (scène Editor) et sauvegarde-la
+2. Retourne au MainMenu et clique PLAY
+3. La liste devrait afficher ta map avec un bouton ▶
+
+> [!TIP]
+> Les beatmaps sont des fichiers `.json` sauvegardés dans :
+> - **Windows** : `C:\Users\<ton_nom>\AppData\LocalLow\<CompanyName>\<ProductName>\BeatMaps\`
+> - Tu peux trouver le chemin exact avec `Debug.Log(Application.persistentDataPath)` dans la console Unity
+
+### 6.8 EventSystem
+- Vérifier qu'un `EventSystem` existe dans la Hierarchy avec le composant `InputSystemUIInputModule`
+- S'il n'existe pas : `GameObject > UI > Event System`
 
 ---
 
