@@ -13,11 +13,14 @@ MonoBehaviour:
   m_Name: Base
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyId: Base
-  prefab: {fileID: -2253911629886400664, guid: 52b1ec17687ef4e41bd46f05e6d933e9, type: 3}
+  prefab: {fileID: 656975314614994843, guid: f52707cc8830d5a439777177db272b96, type: 3}
   hitPoints: 1
   baseMoveSpeed: 3
   damage: 1
   requiredInput: 0
+  lifetimeMinBeats: 8
+  lifetimeMaxBeats: 8
+  blinkBeatsBeforeVulnerable: 6
   warningColor: {r: 1, g: 0, b: 0, a: 1}
   spamClicksRequired: 0
   spamWindowDuration: 0

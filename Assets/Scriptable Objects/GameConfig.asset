@@ -23,8 +23,8 @@ MonoBehaviour:
   scoreMultiplierMax: 999
   scoreMultiplierOnMiss: 1
   baseGameSpeed: 1
-  speedPerScoreMultiplier: 0.05
-  speedSoftCap: 1.8
+  speedPerScoreMultiplier: 0.25
+  speedSoftCap: 1.5
   speedHardCap: 2.5
   speedOnMiss: 1
   cooldownSpeedFactor: 1

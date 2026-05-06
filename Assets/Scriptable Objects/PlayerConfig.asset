@@ -19,5 +19,5 @@ MonoBehaviour:
   healOnKill: 5
   passiveHealRate: 1
   passiveHealDelay: 3
-  damageOnMiss: 10
-  damageOnTooSoon: 10
+  damageOnMiss: 25
+  damageOnTooSoon: 25

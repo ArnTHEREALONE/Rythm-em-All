@@ -1654,9 +1654,8 @@ MonoBehaviour:
   enemyDataRight: {fileID: 0}
   enemyDataBoth: {fileID: 0}
   enemyDataSpam: {fileID: 0}
-  lookAheadBeats: 4
-  warningAheadBeats: 2
-  calmBeforeStormDuration: 5
+  lookAheadBeats: 10
+  warningAheadBeats: 3
   nextNoteIndex: 0
   nextWarningIndex: 0
   activeEnemyCount: 0
@@ -2910,7 +2909,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1035290697
 RectTransform:
   m_ObjectHideFlags: 0
