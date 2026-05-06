@@ -174,7 +174,7 @@ public class MapSelectUI : MonoBehaviour
         GameObject btnTextGO = new GameObject("BtnText");
         btnTextGO.transform.SetParent(playBtnGO.transform, false);
         TextMeshProUGUI btnText = btnTextGO.AddComponent<TextMeshProUGUI>();
-        btnText.text = "▶";
+        btnText.text = "Go !";
         btnText.fontSize = 28;
         btnText.alignment = TextAlignmentOptions.Center;
         btnText.color = Color.white;

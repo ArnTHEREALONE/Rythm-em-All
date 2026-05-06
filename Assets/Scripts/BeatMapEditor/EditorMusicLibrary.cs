@@ -168,7 +168,7 @@ public class EditorMusicLibrary : MonoBehaviour
         tmp.fontStyle = style;
         tmp.color = color;
         tmp.alignment = TextAlignmentOptions.MidlineLeft;
-        tmp.enableWordWrapping = false;
+        tmp.textWrappingMode = TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
 
         var layout = textGO.AddComponent<LayoutElement>();
