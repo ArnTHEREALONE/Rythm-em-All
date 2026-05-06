@@ -1,9 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// Mouvement de l'ennemi. L'ennemi avance TOUJOURS jusqu'à sa destruction.
+/// Ne s'arrête jamais, même en état vulnérable.
+/// </summary>
 public class EnemyMovement : MonoBehaviour
 {
     public Vector3 moveDirection = Vector3.forward;
-
     public float baseSpeed = 3f;
 
     [SerializeField] private float actualSpeed;
@@ -27,14 +30,16 @@ public class EnemyMovement : MonoBehaviour
     {
         if (!isMoving) return;
 
+        // L'ennemi s'arrête SEULEMENT quand il est mort ou en train d'exploser
         if (enemyBase != null &&
-            enemyBase.CurrentState != EnemyBase.EnemyState.Moving &&
-            enemyBase.CurrentState != EnemyBase.EnemyState.Spawning)
+            (enemyBase.CurrentState == EnemyBase.EnemyState.Dead ||
+             enemyBase.CurrentState == EnemyBase.EnemyState.Exploding))
         {
             isMoving = false;
             return;
         }
 
+        // Avance toujours (Moving ET Vulnerable)
         actualSpeed = SpeedMultiplier.Instance != null
             ? SpeedMultiplier.Instance.GetScaledSpeed(baseSpeed)
             : baseSpeed;

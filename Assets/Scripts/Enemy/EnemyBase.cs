@@ -2,15 +2,14 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Classe de base des ennemis. Gère le cycle de vie complet :
-/// Spawn → Moving → Vulnerable → (Hit/Exploding) → Dead.
-/// Le timing est basé sur la DSP clock FMOD via FMODAudioManager.
+/// Classe de base des ennemis. Cycle de vie :
+/// Moving (clignotement sur les derniers N beats) → Vulnerable (jaune, continue de bouger) → Explode/Dead.
+/// Le joueur peut tuer à tout moment, mais hors timing = penalty.
 /// </summary>
 public class EnemyBase : MonoBehaviour
 {
     public enum EnemyState
     {
-        Spawning,
         Moving,
         Vulnerable,
         Exploding,
@@ -21,14 +20,11 @@ public class EnemyBase : MonoBehaviour
     public EnemyData data;
 
     [Header("=== État (debug) ===")]
-    [SerializeField] private EnemyState currentState = EnemyState.Spawning;
+    [SerializeField] private EnemyState currentState = EnemyState.Moving;
     [SerializeField] private int currentHP;
     [SerializeField] private float targetBeatTime;
-    [SerializeField] private float vulnerableStartTime;
+    [SerializeField] private float deathBeatTime;
     [SerializeField] private int spamClickCount;
-
-    [Header("=== Timing ===")]
-    public float vulnerableDuration = 0.5f;
 
     [Header("=== Visuel ===")]
     public GameObject vulnerableEffect;
@@ -44,8 +40,11 @@ public class EnemyBase : MonoBehaviour
     public float TargetBeatTime => targetBeatTime;
     public EnemyInputType RequiredInput => data != null ? data.requiredInput : EnemyInputType.Any;
 
+    // === Blink ===
     private Color originalColor;
     private float spamWindowStartTime;
+    private int lastBlinkBeat = -1;
+    private bool blinkVisible = true;
 
     private void Start()
     {
@@ -58,6 +57,8 @@ public class EnemyBase : MonoBehaviour
 
     /// <summary>
     /// Initialise l'ennemi lors du spawn.
+    /// targetBeat = le beat auquel l'ennemi devient vulnérable.
+    /// La durée de vie (quand il meurt naturellement) est calculée depuis le SO.
     /// </summary>
     public void Initialize(EnemyData enemyData, float targetBeat)
     {
@@ -66,6 +67,16 @@ public class EnemyBase : MonoBehaviour
         currentHP = data.hitPoints;
         currentState = EnemyState.Moving;
         spamClickCount = 0;
+        lastBlinkBeat = -1;
+        blinkVisible = true;
+
+        // Durée de vie : random entre min et max beats APRÈS le targetBeat
+        float lifetime = data.lifetimeMinBeats;
+        if (data.lifetimeMaxBeats > data.lifetimeMinBeats)
+        {
+            lifetime = UnityEngine.Random.Range(data.lifetimeMinBeats, data.lifetimeMaxBeats);
+        }
+        deathBeatTime = targetBeat + lifetime;
 
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
@@ -80,6 +91,9 @@ public class EnemyBase : MonoBehaviour
         switch (currentState)
         {
             case EnemyState.Moving:
+                // Clignoter sur les N derniers beats avant la vulnérabilité
+                UpdateBlinking(currentBeat);
+
                 if (currentBeat >= targetBeatTime)
                 {
                     BecomeVulnerable();
@@ -87,8 +101,9 @@ public class EnemyBase : MonoBehaviour
                 break;
 
             case EnemyState.Vulnerable:
-                float elapsed = Time.time - vulnerableStartTime;
-                if (elapsed >= vulnerableDuration)
+                // L'ennemi continue de bouger (EnemyMovement ne l'arrête plus)
+                // Mort naturelle = quand on dépasse la durée de vie
+                if (currentBeat >= deathBeatTime)
                 {
                     Explode();
                 }
@@ -99,68 +114,100 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clignotement rythmique : l'ennemi flash sur chaque beat pendant les N beats avant la vulnérabilité.
+    /// </summary>
+    private void UpdateBlinking(float currentBeat)
+    {
+        if (mainRenderer == null || data == null) return;
+
+        float blinkStartBeat = targetBeatTime - data.blinkBeatsBeforeVulnerable;
+
+        if (currentBeat < blinkStartBeat) return;
+
+        // Déterminer si on est sur un nouveau beat
+        int currentBeatInt = Mathf.FloorToInt(currentBeat);
+        if (currentBeatInt > lastBlinkBeat)
+        {
+            lastBlinkBeat = currentBeatInt;
+            blinkVisible = !blinkVisible;
+
+            // Flash blanc/original
+            mainRenderer.material.color = blinkVisible ? Color.white : originalColor;
+        }
+    }
+
     private void BecomeVulnerable()
     {
         currentState = EnemyState.Vulnerable;
-        vulnerableStartTime = Time.time;
 
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(true);
 
+        // Couleur jaune pour l'état vulnérable
         if (mainRenderer != null)
-            mainRenderer.material.color = Color.white;
+            mainRenderer.material.color = Color.yellow;
     }
 
     /// <summary>
-    /// Tente de frapper cet ennemi. Vérifie le type d'input requis.
-    /// Le timing est évalué via la position timeline FMOD.
+    /// Le joueur peut frapper à tout moment.
+    /// - Si vulnérable : timing normal (Perfect/Good/TooLate)
+    /// - Si Moving (trop tôt) : TooSoon → penalty
+    /// - Hors timing complet : ForceKill → l'ennemi meurt mais score/vitesse reset
     /// </summary>
     public TimingResult TryHit(EnemyInputType inputType)
     {
-        // Pas vulnérable ? Calcul du timing quand même
-        if (currentState == EnemyState.Moving)
-        {
-            float targetTimeInSeconds = BeatManager.Instance.BeatToSeconds(targetBeatTime);
-            // Timing basé sur FMOD DSP clock
-            float currentTime = FMODAudioManager.Instance != null
-                ? FMODAudioManager.Instance.GetTimelinePositionSeconds()
-                : Time.time;
-
-            TimingResult earlyResult = TimingJudge.Instance != null
-                ? TimingJudge.Instance.Judge(currentTime, targetTimeInSeconds)
-                : TimingResult.Miss;
-
-            if (earlyResult == TimingResult.TooSoon)
-                return TimingResult.TooSoon;
-
+        if (currentState == EnemyState.Dead || currentState == EnemyState.Exploding)
             return TimingResult.Miss;
+
+        // L'ennemi peut toujours être frappé — on vérifie le timing
+
+        // Check input type (sauf ForceKill qui ignore)
+        if (data.requiredInput != EnemyInputType.Any &&
+            data.requiredInput != EnemyInputType.Spam)
+        {
+            if (!IsCorrectInput(inputType))
+                return TimingResult.Miss;
         }
 
-        if (currentState != EnemyState.Vulnerable)
-            return TimingResult.Miss;
-
-        if (!IsCorrectInput(inputType))
-            return TimingResult.Miss;
-
-        if (data.requiredInput == EnemyInputType.Spam)
+        // Spam mode
+        if (data.requiredInput == EnemyInputType.Spam && currentState == EnemyState.Vulnerable)
         {
             return HandleSpamHit();
         }
 
-        // Hit normal : évalue le timing via FMOD
+        // Calcul du timing
         float targetTime = BeatManager.Instance.BeatToSeconds(targetBeatTime);
         float hitTime = FMODAudioManager.Instance != null
             ? FMODAudioManager.Instance.GetTimelinePositionSeconds()
             : Time.time;
 
-        TimingResult result = TimingJudge.Instance != null
-            ? TimingJudge.Instance.Judge(hitTime, targetTime)
-            : TimingResult.Good;
+        TimingResult result;
+        if (TimingJudge.Instance != null)
+        {
+            result = TimingJudge.Instance.Judge(hitTime, targetTime);
+        }
+        else
+        {
+            result = currentState == EnemyState.Vulnerable ? TimingResult.Good : TimingResult.TooSoon;
+        }
 
+        // Toujours infliger des dégâts (1 HP par hit)
         currentHP--;
+
         if (currentHP <= 0)
         {
-            Die(result);
+            // Si le timing est mauvais (TooSoon ou Miss), on tue quand même
+            // mais le résultat reste TooSoon/Miss pour que PlayerCombat applique la penalty
+            if (result == TimingResult.TooSoon || result == TimingResult.Miss)
+            {
+                Die(TimingResult.TooSoon);
+                return TimingResult.TooSoon;
+            }
+            else
+            {
+                Die(result);
+            }
         }
 
         return result;

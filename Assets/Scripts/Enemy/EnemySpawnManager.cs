@@ -1,35 +1,38 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Gestionnaire des spawns d'ennemis. Lit la beatmap et spawn les ennemis.
+/// Gère les warnings et le cleanup.
+/// </summary>
 public class EnemySpawnManager : MonoBehaviour
 {
     public static EnemySpawnManager Instance { get; private set; }
 
+    [Header("=== Spawners ===")]
     public List<EnemySpawner> spawners = new List<EnemySpawner>();
 
+    [Header("=== Enemy Data (par type d'input) ===")]
     public EnemyData enemyDataSimple;
-
     public EnemyData enemyDataLeft;
-
     public EnemyData enemyDataRight;
-
     public EnemyData enemyDataBoth;
-
     public EnemyData enemyDataSpam;
 
+    [Header("=== Timing ===")]
+    [Tooltip("Combien de beats avant le targetBeat pour spawner l'ennemi")]
     public float lookAheadBeats = 4f;
 
+    [Tooltip("Combien de beats avant le targetBeat pour afficher le warning")]
     public float warningAheadBeats = 2f;
 
-    public float calmBeforeStormDuration = 5f;
-
+    [Header("=== État (debug) ===")]
     [SerializeField] private int nextNoteIndex;
     [SerializeField] private int nextWarningIndex;
     [SerializeField] private int activeEnemyCount;
 
     private BeatMapData currentMap;
     private List<EnemyBase> activeEnemies = new List<EnemyBase>();
-    private float lastSpawnTime;
 
     private void Awake()
     {
@@ -47,7 +50,6 @@ public class EnemySpawnManager : MonoBehaviour
         nextNoteIndex = 0;
         nextWarningIndex = 0;
         activeEnemies.Clear();
-        lastSpawnTime = Time.time;
 
         if (currentMap.notes != null)
         {
@@ -73,9 +75,7 @@ public class EnemySpawnManager : MonoBehaviour
         float currentBeat = BeatManager.Instance.CurrentBeat;
 
         ProcessWarnings(currentBeat);
-
         ProcessSpawns(currentBeat);
-
         CleanupDeadEnemies();
 
         activeEnemyCount = activeEnemies.Count;
@@ -118,7 +118,6 @@ public class EnemySpawnManager : MonoBehaviour
             {
                 SpawnEnemyForNote(note);
                 nextNoteIndex++;
-                lastSpawnTime = Time.time;
             }
             else
             {
@@ -147,7 +146,6 @@ public class EnemySpawnManager : MonoBehaviour
 
         if (enemy != null)
         {
-            enemy.OnEnemyKilled += HandleEnemyKilled;
             enemy.OnEnemyExploded += HandleEnemyExploded;
             activeEnemies.Add(enemy);
         }
@@ -168,38 +166,35 @@ public class EnemySpawnManager : MonoBehaviour
         };
     }
 
-    private void HandleEnemyKilled(EnemyBase enemy, TimingResult result)
-    {
-        if (ScoreManager.Instance != null)
-        {
-            ScoreManager.Instance.RegisterHit(result);
-        }
-
-        if (TimingFeedbackUI.Instance != null)
-        {
-            TimingFeedbackUI.Instance.ShowFeedback(result, enemy.transform.position);
-        }
-    }
-
+    /// <summary>
+    /// Quand un ennemi explose naturellement (pas tué par le joueur) = miss.
+    /// </summary>
     private void HandleEnemyExploded(EnemyBase enemy)
     {
         if (ScoreManager.Instance != null)
-        {
             ScoreManager.Instance.RegisterMiss();
-        }
 
         if (TimingFeedbackUI.Instance != null)
-        {
             TimingFeedbackUI.Instance.ShowFeedback(TimingResult.Miss, enemy.transform.position);
-        }
 
+        // Dégâts au joueur
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null && player.health != null && enemy.data != null)
+        {
+            player.health.TakeDamage(enemy.data.damage);
+        }
     }
+
     private void CleanupDeadEnemies()
     {
         activeEnemies.RemoveAll(e => e == null);
     }
 
-    public EnemyBase GetClosestVulnerableEnemy(Vector3 playerPosition, EnemyInputType inputType)
+    /// <summary>
+    /// Trouve l'ennemi le plus proche du joueur, DANS N'IMPORTE QUEL ÉTAT (Moving ou Vulnerable).
+    /// Le joueur peut frapper à tout moment.
+    /// </summary>
+    public EnemyBase GetClosestEnemy(Vector3 playerPosition, EnemyInputType inputType, float maxRange)
     {
         EnemyBase closest = null;
         float closestDist = float.MaxValue;
@@ -207,14 +202,17 @@ public class EnemySpawnManager : MonoBehaviour
         foreach (var enemy in activeEnemies)
         {
             if (enemy == null) continue;
-            if (enemy.CurrentState != EnemyBase.EnemyState.Vulnerable &&
-                enemy.CurrentState != EnemyBase.EnemyState.Moving) continue;
+            if (enemy.CurrentState == EnemyBase.EnemyState.Dead ||
+                enemy.CurrentState == EnemyBase.EnemyState.Exploding) continue;
 
+            // Vérifier le type d'input
             if (enemy.RequiredInput != EnemyInputType.Any &&
                 enemy.RequiredInput != inputType &&
                 inputType != EnemyInputType.Any) continue;
 
             float dist = Vector3.Distance(playerPosition, enemy.transform.position);
+            if (dist > maxRange) continue;
+
             if (dist < closestDist)
             {
                 closestDist = dist;
@@ -223,6 +221,14 @@ public class EnemySpawnManager : MonoBehaviour
         }
 
         return closest;
+    }
+
+    /// <summary>
+    /// Ancienne méthode pour compatibilité. Redirige vers GetClosestEnemy.
+    /// </summary>
+    public EnemyBase GetClosestVulnerableEnemy(Vector3 playerPosition, EnemyInputType inputType)
+    {
+        return GetClosestEnemy(playerPosition, inputType, 999f);
     }
 
     public bool AllNotesProcessed()

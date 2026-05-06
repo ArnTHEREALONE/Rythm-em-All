@@ -268,15 +268,16 @@ Créer 4 cubes fins autour de l'arène :
 | Gauche | `(-10, 0.5, 0)` | `(0.5, 1, 20)` |
 | Droite | `(10, 0.5, 0)` | `(0.5, 1, 20)` |
 
-### 5.4 Spawners
+### 5.4 Spawners + Warning Indicators
 
 > [!IMPORTANT]
 > Placer **12 spawners** sur les bords de l'arène (**3 par côté**).
+> Chaque spawner a besoin d'un **WarningIndicator** enfant pour afficher un signal visuel avant qu'un ennemi n'apparaisse.
 
 Pour chaque spawner :
 
-1. `GameObject > Create Empty` → nommer `Spawner_Top_0`, `Spawner_Top_1`, `Spawner_Top_2`, etc.
-2. Ajouter le script `EnemySpawner.cs`
+1. `GameObject > Create Empty` → nommer `Spawner_Top_0`, `Spawner_Top_1`, etc.
+2. `Add Component` → `EnemySpawner`
 3. Positionner **juste en dehors** de l'arène :
 
 | Côté | Positions (3 par côté) | Direction (vers le centre) |
@@ -289,36 +290,114 @@ Pour chaque spawner :
 4. Dans l'Inspector :
    - `Spawner Index` : **0 à 11**
    - `Spawn Direction` : la direction correspondante
-5. Regrouper sous un parent vide `"Spawners"`
+
+#### 5.4.1 Créer le Warning Indicator (pour CHAQUE spawner)
+
+1. **Clic droit** sur le Spawner dans la Hierarchy → `2D Object > Sprite > Square`
+   - *(ou `GameObject > Create Empty` puis `Add Component > Sprite Renderer`)*
+2. **Renommer** l'enfant `WarningIndicator`
+3. Dans l'Inspector du `WarningIndicator` :
+   - **Position** : `(0, 0.1, 0)` (légèrement au-dessus du sol)
+   - **Rotation** : `(90, 0, 0)` (à plat au sol)
+   - **Scale** : `(2, 2, 1)` (assez grand pour être visible)
+4. **SpriteRenderer** :
+   - **Sprite** : `UISprite` (le carré blanc par défaut de Unity) ou n'importe quel sprite
+   - **Color** : rouge `(255, 0, 0)` avec **Alpha = 0** (invisible par défaut — le script gère l'alpha)
+5. `Add Component` → taper `WarningIndicator` → sélectionner
+6. Dans le composant `WarningIndicator` :
+
+| Champ | Valeur |
+|---|---|
+| `Sprite Renderer` | Glisser le **SpriteRenderer** du même objet (lui-même) |
+| `Blink Rate` | `3` |
+| `Min Alpha` | `0.2` |
+| `Max Alpha` | `1` |
+
+7. **Brancher dans le Spawner parent** :
+   - Sélectionner le **Spawner** parent
+   - Dans `EnemySpawner` → champ `Warning Indicator` → **glisser l'enfant `WarningIndicator`**
+
+8. **Répéter pour les 12 spawners**
+
+> [!TIP]
+> **Raccourci** : configure un seul spawner avec son Warning, puis sélectionne-le → `Ctrl+D` pour dupliquer. Ajuste ensuite la position, le Spawner Index, et le Spawn Direction de chaque copie.
+
+5. Regrouper tous les spawners sous un parent vide `"Spawners"`
+
+---
 
 ### 5.5 Player
+
 1. `GameObject > 3D Object > Capsule` (ou sprite 2D)
 2. **Position** : `(0, 0.5, 0)` — centre de l'arène
 3. **Tag** : `Player`
-4. **Composants à ajouter** :
+4. **Composants à ajouter** (via `Add Component` pour chaque) :
    - `Rigidbody` → cocher **Freeze Rotation** (X, Y, Z) + **Freeze Position Y**
    - `CapsuleCollider`
-   - `PlayerController.cs`
-   - `PlayerMovement.cs`
-   - `PlayerCombat.cs`
-   - `PlayerDash.cs`
-   - `PlayerHealth.cs`
-5. **Références Inspector** :
-   - `PlayerConfig` → drag le SO `PlayerConfig.asset`
-   - `HP Slider` → drag le Slider UI (voir section UI)
-   - **SFX FMOD (dans PlayerCombat)** :
-     - `sfxPerfect` → `event:/SFX/HitPerfect` (glisser depuis FMOD Event Browser)
-     - `sfxGood` → `event:/SFX/HitGood`
-     - `sfxMiss` → `event:/SFX/HitMiss`
-     - `sfxTooSoon` → `event:/SFX/TooSoon`
-     - `sfxTooLate` → `event:/SFX/TooLate`
-   - **SFX FMOD (dans PlayerDash)** :
-     - `dashSFX` → `event:/SFX/Dash`
+   - `PlayerController`
+   - `PlayerMovement`
+   - `PlayerCombat`
+   - `PlayerDash`
+   - `PlayerHealth`
+
+#### 5.5.1 Configurer PlayerCombat
+
+Dans l'Inspector, section `PlayerCombat` :
+
+| Champ | Valeur | Description |
+|---|---|---|
+| `Hit Range` | `3` | Portée d'attaque en unités |
+| `Both Input Window` | `0.1` | Fenêtre pour le double-clic (Both) |
+| `Attack Flash Color` | `#FF4D4D` (rouge clair) | Couleur du flash quand le joueur frappe |
+| `Attack Flash Duration` | `0.08` | Durée du flash en secondes |
+| `Show Range In Game` | ✅ coché | Affiche un cercle rouge autour du joueur en jeu |
+| `Range Circle Color` | `#FF000044` (rouge semi-transparent) | Couleur du cercle |
+
+**SFX FMOD** (ouvrir `FMOD > Event Browser` → glisser les events) :
+
+| Champ | Event FMOD |
+|---|---|
+| `sfxPerfect` | `event:/SFX/HitPerfect` |
+| `sfxGood` | `event:/SFX/HitGood` |
+| `sfxMiss` | `event:/SFX/HitMiss` |
+| `sfxTooSoon` | `event:/SFX/TooSoon` |
+| `sfxTooLate` | `event:/SFX/TooLate` |
+
+> [!TIP]
+> **Range d'attaque visible** : un cercle rouge est toujours visible dans la **Scene View** grâce aux Gizmos. Si `Show Range In Game` est coché, un `LineRenderer` est aussi affiché **en jeu** pour le joueur.
+
+#### 5.5.2 Configurer PlayerDash
+
+| Champ | Event FMOD |
+|---|---|
+| `dashSFX` | `event:/SFX/Dash` |
+
+#### 5.5.3 Configurer PlayerHealth
+
+| Champ | Valeur |
+|---|---|
+| `HP Slider` | Glisser le Slider `HPBar` du Canvas (voir section 5.8) |
+| `Flash Color` | `#CC0000` (rouge foncé) — flash quand le joueur frappe hors timing |
+| `Flash Duration` | `0.3` |
+
+#### 5.5.4 Configurer PlayerController
+
+| Champ | Glisser |
+|---|---|
+| `Config` | `PlayerConfig.asset` depuis `Assets/Scriptable Objects/` |
+| `Movement` | Se remplit automatiquement |
+| `Combat` | Se remplit automatiquement |
+| `Dash` | Se remplit automatiquement |
+| `Health` | Se remplit automatiquement |
+
+---
 
 ### 5.6 Managers (GameObjects vides)
 
 > [!IMPORTANT]
 > Plus besoin d'AudioSource sur aucun manager. FMOD gère tout.
+
+Créer ces GameObjects vides (`GameObject > Create Empty`) et attacher les scripts :
 
 | GameObject | Scripts à attacher |
 |-----------|-------------------|
@@ -328,52 +407,112 @@ Pour chaque spawner :
 | **ScoreManager** | `ScoreManager.cs` |
 | **BeatManager** | `BeatManager.cs` |
 | **EnemySpawnManager** | `EnemySpawnManager.cs` |
+| **TimingJudge** | `TimingJudge.cs` |
+| **TimingFeedbackUI** | `TimingFeedbackUI.cs` |
 
-**Références à assigner dans GameManager :**
-- `GameConfig` → drag `GameConfig.asset`
-- `PlayerConfig` → drag `PlayerConfig.asset`
-- `Player` → drag le GO Player
-- `MusicDatabase` → drag `MusicDatabase.asset`
+#### 5.6.1 Configurer GameManager
+
+| Champ Inspector | Que glisser dedans |
+|---|---|
+| `Game Config` | `GameConfig.asset` (depuis `Assets/Scriptable Objects/`) |
+| `Player Config` | `PlayerConfig.asset` |
+| `Player` | Le GameObject `Player` de la scène |
+| `Music Database` | `MusicDatabase.asset` |
+
+#### 5.6.2 Configurer EnemySpawnManager
+
+| Champ Inspector | Que glisser dedans |
+|---|---|
+| `Spawners` | Déplier la liste → glisser les **12 spawners** un par un |
+| `Enemy Data Simple` | `Enemy_Simple.asset` |
+| `Enemy Data Left` | `Enemy_Left.asset` |
+| `Enemy Data Right` | `Enemy_Right.asset` |
+| `Enemy Data Both` | `Enemy_Both.asset` |
+| `Enemy Data Spam` | `Enemy_Spam.asset` |
+| `Look Ahead Beats` | `4` |
+| `Warning Ahead Beats` | `6` (doit être > Look Ahead pour que le warning apparaisse AVANT l'ennemi) |
+
+#### 5.6.3 Configurer TimingFeedbackUI
+
+> [!IMPORTANT]
+> C'est le système qui affiche "PERFECT!", "GOOD", "TOO SOON", etc.
+
+| Champ Inspector | Que glisser dedans |
+|---|---|
+| `Feedback Prefab` | Le prefab `FeedbackText3D.prefab` (voir 5.6.4) |
+| `Display Duration` | `0.6` |
+| `Float Up Distance` | `1.5` |
+| `Screen Feedback Text` | `GameCanvas > TimingFeedbackText` (voir section 5.8) |
+
+#### 5.6.4 Créer le Prefab de Feedback 3D
+
+> [!IMPORTANT]
+> Ce prefab affiche "PERFECT!", "GOOD", etc. **au-dessus de l'ennemi** quand il est tué.
+
+1. `GameObject > 3D Object > Text - TextMeshPro` → renommer `FeedbackText3D`
+2. Inspector :
+   - **TextMeshPro** : Text = `PERFECT!`, Font Size = `8`, Alignment = `Center`
+   - **RectTransform** : Width = `4`, Height = `1`
+   - **Rotation** : `(90, 0, 0)` (pour être lisible en vue top-down)
+3. **Glisser** le GO depuis la Hierarchy vers `Assets/Prefabs/` → le transformer en **Prefab**
+4. **Supprimer** l'instance de la scène
+5. Glisser `Assets/Prefabs/FeedbackText3D.prefab` dans le champ `Feedback Prefab` de `TimingFeedbackUI`
+
+---
 
 ### 5.7 FMOD Studio Listener
 
-> [!IMPORTANT]
-> **Remplacer** l'`AudioListener` de la caméra par un `FMODUnity.StudioListener`.
-
 1. Sélectionner la **Main Camera**
 2. **Supprimer** le composant `AudioListener` (clic droit → Remove Component)
-3. **Ajouter** le composant `FMOD Studio Listener` (`Add Component > FMOD > Studio Listener`)
-4. **Attenuate** : décocher (pas d'atténuation 3D pour un jeu 2D top-down)
+3. `Add Component` → `FMOD Studio Listener`
+4. **Attenuate** : décocher (pas d'atténuation 3D pour un jeu top-down)
+
+---
 
 ### 5.8 UI — Game HUD (Canvas)
 
+1. `GameObject > UI > Canvas` → renommer `GameCanvas`
+2. **Canvas Scaler** : `Scale With Screen Size`, `1920 × 1080`, Match = `0.5`
+
 ```
-GameCanvas (Canvas Scaler: Scale With Screen Size, 1920×1080)
+GameCanvas
 ├── HPBar (UI > Slider)
-│   ├── Position : en bas au centre
+│   ├── Anchor : Bottom-Center, Pos Y = 50
 │   ├── Width: 400, Height: 30
-│   └── Background Color : gris foncé
-├── ScoreText (TextMeshPro)
-│   └── Position : en haut à droite
-├── ComboText (TextMeshPro)
-│   └── Position : en haut au centre
-├── MultiplierText (TextMeshPro)
-│   └── Position : sous le combo
-├── SpeedText (TextMeshPro)
-│   └── Position : en haut à gauche
-├── TimingFeedbackText (TextMeshPro)
-│   ├── Position : centre de l'écran
-│   ├── Font Size : 72
-│   └── Alpha = 0 par défaut
-└── PauseMenu (Panel, désactivé par défaut)
-    ├── ResumeButton
-    ├── RestartButton
-    └── QuitButton
+│   └── Background Color : #333333
+├── ScoreText (UI > Text - TextMeshPro)
+│   ├── Anchor : Top-Right, Pos = (-120, -30)
+│   ├── Font Size : 28, Text : "Score: 0"
+├── ComboText (UI > Text - TextMeshPro)
+│   ├── Anchor : Top-Center, Pos Y = -30
+│   ├── Font Size : 36, Text : "Combo: 0"
+├── MultiplierText (UI > Text - TextMeshPro)
+│   ├── Anchor : Top-Center, Pos Y = -70
+│   ├── Font Size : 20, Text : "x1.0"
+├── SpeedText (UI > Text - TextMeshPro)
+│   ├── Anchor : Top-Left, Pos = (120, -30)
+│   ├── Font Size : 20, Text : "Speed: 1.0x"
+├── TimingFeedbackText (UI > Text - TextMeshPro)
+│   ├── Anchor : Center, Pos Y = 100
+│   ├── Font Size : 72, Alignment : Center
+│   ├── Color : blanc, Alpha = 0 (invisible par défaut)
+│   └── Text : "" (vide — le script le remplit)
+└── PauseMenu (UI > Panel, désactivé par défaut)
+    ├── ResumeButton (Button-TMP, "RESUME")
+    ├── RestartButton (Button-TMP, "RESTART")
+    └── QuitButton (Button-TMP, "QUIT")
 ```
+
+> [!IMPORTANT]
+> **Brancher `TimingFeedbackText`** : sélectionner le GO `TimingFeedbackUI` → champ `Screen Feedback Text` → glisser `GameCanvas > TimingFeedbackText`
+
+> [!IMPORTANT]
+> **Brancher `HPBar`** : sélectionner le `Player` → `PlayerHealth` → champ `HP Slider` → glisser `GameCanvas > HPBar`
 
 Attacher `GameUI.cs` sur le Canvas ou un GO vide.
 
 ---
+
 
 ## 6 — Scène MainMenu — Setup (Guide détaillé pas-à-pas)
 
@@ -1194,13 +1333,19 @@ Pour chaque prefab :
 
 `Create > Scriptable Objects > EnemyData` → créer 5 instances :
 
-| Asset | HP | Speed | Input | Spam Clicks |
-|-------|----|----|-------|-------------|
-| `Enemy_Simple.asset` | 1 | 3 | Any | — |
-| `Enemy_Left.asset` | 1 | 3 | LeftOnly | — |
-| `Enemy_Right.asset` | 1 | 3 | RightOnly | — |
-| `Enemy_Both.asset` | 1 | 3 | Both | — |
-| `Enemy_Spam.asset` | 5 | 2 | Spam | 5 clics, 1.0s |
+| Asset | HP | Speed | Input | Lifetime Min | Lifetime Max | Blink Beats | Spam |
+|-------|----|----|-------|---|---|---|---|
+| `Enemy_Simple.asset` | 1 | 3 | Any | 8 | 8 | 6 | — |
+| `Enemy_Left.asset` | 1 | 3 | LeftOnly | 8 | 8 | 6 | — |
+| `Enemy_Right.asset` | 1 | 3 | RightOnly | 8 | 8 | 6 | — |
+| `Enemy_Both.asset` | 1 | 4 | Both | 6 | 10 | 6 | — |
+| `Enemy_Spam.asset` | 5 | 2 | Spam | 10 | 12 | 6 | 5 clics, 1.0s |
+
+> [!IMPORTANT]
+> **Nouveaux champs dans EnemyData** :
+> - `Lifetime Min Beats` / `Lifetime Max Beats` : combien de beats l'ennemi vit **après** être devenu vulnérable. Si min ≠ max, un random est tiré entre les deux.
+> - `Blink Beats Before Vulnerable` : combien de beats l'ennemi **clignote** avant de devenir vulnérable (jaune). Par défaut `6` = il clignote pendant 6 beats puis passe au jaune.
+> - `Damage` : dégâts infligés au joueur si l'ennemi **explose** (mort naturelle, pas tué par le joueur).
 
 ### 9.4 MusicDatabase
 
