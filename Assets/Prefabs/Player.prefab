@@ -100,7 +100,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7230475088236558089}
-  - component: {fileID: 1354173145331904704}
   - component: {fileID: 5194863857229957332}
   - component: {fileID: 1768092692070481748}
   - component: {fileID: 7517049715415926573}
@@ -130,20 +129,6 @@ Transform:
   - {fileID: 6708683739414279925}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1354173145331904704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5107898816876568930}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 454349c9ae258bf438b8c0ee90a42cdd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  speed: 5
-  m: {fileID: 0}
 --- !u!54 &5194863857229957332
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -183,10 +168,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e79f6c5dedd21704eb834896d8417aef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  movement: {fileID: 0}
-  combat: {fileID: 0}
-  dash: {fileID: 0}
-  health: {fileID: 0}
+  movement: {fileID: 7517049715415926573}
+  combat: {fileID: 4960253401516150143}
+  dash: {fileID: 8898181989481095386}
+  health: {fileID: 1341365103947229477}
   config: {fileID: 11400000, guid: 62701447388e4cd41869239ce6c4c232, type: 2}
 --- !u!114 &7517049715415926573
 MonoBehaviour:
@@ -217,11 +202,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
   hitRange: 3
   bothInputWindow: 0.1
-  sfxPerfect: {fileID: 0}
-  sfxGood: {fileID: 0}
-  sfxMiss: {fileID: 0}
-  sfxTooSoon: {fileID: 0}
-  sfxTooLate: {fileID: 0}
+  sfxPerfect:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  sfxGood:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  sfxMiss:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  sfxTooSoon:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  sfxTooLate:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
   lastLeftAttackTime: -999
   lastRightAttackTime: -999
 --- !u!114 &8898181989481095386
@@ -239,7 +254,13 @@ MonoBehaviour:
   dashDistance: 5
   baseCooldown: 1
   dashDuration: 0.15
-  dashSFX: {fileID: 0}
+  dashSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
   isDashing: 0
   cooldownTimer: 0
   currentCooldown: 0
