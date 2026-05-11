@@ -9,7 +9,7 @@ using System.Collections.Generic;
 /// Les notes sont des ronds colorés 2D positionnés sur une grille
 /// lanes (horizontal) × beats (vertical), avec drag & drop snappé.
 /// </summary>
-public class EditorGrid : MonoBehaviour
+public class EditorGrid : MonoBehaviour, IPointerClickHandler
 {
     [Header("=== Configuration ===")]
     [Tooltip("Nombre de lanes (= nombre de spawners, doit correspondre à BeatMapEditor.laneCount)")]
@@ -227,6 +227,17 @@ public class EditorGrid : MonoBehaviour
         float snappedBeat = Mathf.Round(beat);
 
         return (lane, snappedBeat);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (BeatMapEditor.Instance == null) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(gridArea, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
+        var (lane, beat) = ScreenToGrid(localPoint);
+
+        // Si on a cliqué et qu'on n'est pas en train de drag, on place (ou on retire si elle existe déjà)
+        BeatMapEditor.Instance.PlaceNoteAt(beat, lane, EnemyInputType.Any);
     }
 
     private void UpdateCursor(float currentBeat, float startBeat, float endBeat)

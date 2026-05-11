@@ -8,7 +8,10 @@ using UnityEngine;
 [System.Serializable]
 public class BeatMapData
 {
-    [Tooltip("Nom affiché de la chanson")]
+    [Tooltip("Nom de la map (affiché dans le panneau de sélection)")]
+    public string mapName;
+
+    [Tooltip("Nom de la chanson (extrait du MusicDatabase)")]
     public string songName;
 
     [Tooltip("Chemin de l'event FMOD (ex: event:/Music/NeonRush)")]

@@ -40,7 +40,8 @@ public class EditorGestionPanel : MonoBehaviour
         // Préremplir le champ save avec le nom actuel
         if (saveNameInput != null && BeatMapEditor.Instance?.CurrentMap != null)
         {
-            saveNameInput.text = BeatMapEditor.Instance.CurrentMap.songName;
+            string currentMapName = BeatMapEditor.Instance.CurrentMap.mapName;
+            saveNameInput.text = string.IsNullOrEmpty(currentMapName) ? "Map sans nom" : currentMapName;
         }
 
         ClearStatus();

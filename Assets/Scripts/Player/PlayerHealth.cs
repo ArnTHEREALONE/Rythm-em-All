@@ -18,7 +18,7 @@ public class PlayerHealth : MonoBehaviour
     public Slider hpSlider;
 
     [Header("=== Flash ===")]
-    [Tooltip("Couleur du flash rouge quand le joueur perd du score (frappe hors timing)")]
+    [Tooltip("Couleur du flash rouge quand le joueur subit des dégâts ou frappe hors timing")]
     public Color flashColor = new Color(1f, 0f, 0f, 0.8f);
     [Tooltip("Durée du flash en secondes")]
     public float flashDuration = 0.3f;
@@ -36,7 +36,6 @@ public class PlayerHealth : MonoBehaviour
     public bool IsDead => currentHP <= 0f;
 
     private Image sliderFillImage;
-    private Color normalFillColor;
     private Coroutine flashSliderCoroutine;
 
     private void Start()
@@ -44,13 +43,60 @@ public class PlayerHealth : MonoBehaviour
         currentHP = maxHP;
         timeSinceLastDamage = passiveHealDelay + 1f;
 
-        // Cacher la ref du fill pour le flash
-        if (hpSlider != null && hpSlider.fillRect != null)
+        // Récupérer la ref du fill pour le flash et la couleur
+        FindSliderFillImage();
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// Cherche l'Image du fill du slider, avec fallback par nom si fillRect est null.
+    /// </summary>
+    private void FindSliderFillImage()
+    {
+        if (hpSlider == null)
+        {
+            Debug.LogWarning("PlayerHealth: hpSlider est null ! Glisser le Slider HPBar dans l'Inspector.");
+            return;
+        }
+
+        // Méthode 1 : via fillRect (standard)
+        if (hpSlider.fillRect != null)
         {
             sliderFillImage = hpSlider.fillRect.GetComponent<Image>();
         }
 
-        UpdateUI();
+        // Méthode 2 : fallback — chercher un enfant nommé "Fill"
+        if (sliderFillImage == null)
+        {
+            Transform fillTransform = hpSlider.transform.Find("Fill Area/Fill");
+            if (fillTransform != null)
+            {
+                sliderFillImage = fillTransform.GetComponent<Image>();
+            }
+        }
+
+        // Méthode 3 : fallback profond — chercher dans tous les enfants
+        if (sliderFillImage == null)
+        {
+            foreach (Transform child in hpSlider.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == "Fill")
+                {
+                    sliderFillImage = child.GetComponent<Image>();
+                    if (sliderFillImage != null) break;
+                }
+            }
+        }
+
+        if (sliderFillImage == null)
+        {
+            Debug.LogWarning("PlayerHealth: Impossible de trouver l'Image Fill du slider HP. " +
+                "Vérifier que le Slider a un Fill Area > Fill avec un composant Image.");
+        }
+        else
+        {
+            Debug.Log("PlayerHealth: Slider HP Fill trouvé correctement.");
+        }
     }
 
     public void Initialize(PlayerConfig config)
@@ -64,6 +110,7 @@ public class PlayerHealth : MonoBehaviour
         }
 
         currentHP = maxHP;
+        FindSliderFillImage();
         UpdateUI();
     }
 
@@ -89,6 +136,8 @@ public class PlayerHealth : MonoBehaviour
         currentHP -= amount;
         timeSinceLastDamage = 0f;
 
+        Debug.Log($"PlayerHealth: Dégâts reçus = {amount}, HP = {currentHP}/{maxHP}");
+
         if (currentHP <= 0f)
         {
             currentHP = 0f;
@@ -97,6 +146,9 @@ public class PlayerHealth : MonoBehaviour
 
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
+
+        // Flash le slider automatiquement quand on prend des dégâts
+        FlashSliderRed();
     }
 
     public void HealOnKill()
@@ -123,12 +175,12 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// Flash le slider HP en rouge (appelé quand le joueur frappe hors timing).
+    /// Flash le slider HP en rouge.
     /// </summary>
     public void FlashSliderRed()
     {
-        if (sliderFillImage == null && hpSlider != null && hpSlider.fillRect != null)
-            sliderFillImage = hpSlider.fillRect.GetComponent<Image>();
+        if (sliderFillImage == null)
+            FindSliderFillImage();
 
         if (sliderFillImage == null) return;
 
@@ -142,7 +194,6 @@ public class PlayerHealth : MonoBehaviour
     {
         if (sliderFillImage == null) yield break;
 
-        Color originalColor = GetHealthColor();
         sliderFillImage.color = flashColor;
 
         float elapsed = 0f;

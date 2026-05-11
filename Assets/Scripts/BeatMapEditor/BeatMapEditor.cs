@@ -67,7 +67,8 @@ public class BeatMapEditor : MonoBehaviour
     {
         currentMap = new BeatMapData
         {
-            songName = "New Map",
+            mapName = "New Map",
+            songName = "",
             fmodEventPath = "",
             bpm = 120f,
             songOffset = 0f,
@@ -107,22 +108,26 @@ public class BeatMapEditor : MonoBehaviour
         if (musicDatabase != null && !string.IsNullOrEmpty(currentMap.fmodEventPath))
         {
             SelectedMusicEntry = musicDatabase.GetByEventPath(currentMap.fmodEventPath);
+            if (musicLibrary != null && SelectedMusicEntry != null)
+            {
+                // Optionally highlight in library if logic exists
+            }
         }
 
         currentBeat = 0f;
         isPlaying = false;
 
         RefreshUI();
-        Debug.Log($"BeatMapEditor: Loaded '{currentMap.songName}' ({currentMap.notes.Count} notes)");
+        Debug.Log($"BeatMapEditor: Loaded '{currentMap.mapName}' ({currentMap.notes.Count} notes)");
     }
 
     /// <summary>
-    /// Sauvegarde la beatmap en JSON avec le nom actuel de songName.
+    /// Sauvegarde la beatmap en JSON avec le nom actuel de mapName.
     /// </summary>
     public void SaveMap()
     {
         if (currentMap == null) return;
-        SaveMapWithName(currentMap.songName);
+        SaveMapWithName(string.IsNullOrEmpty(currentMap.mapName) ? "Map sans nom" : currentMap.mapName);
     }
 
     /// <summary>
@@ -133,8 +138,8 @@ public class BeatMapEditor : MonoBehaviour
     {
         if (currentMap == null) return;
 
-        // Mettre à jour le nom dans la beatmap
-        currentMap.songName = mapName;
+        // Mettre à jour le nom de la map
+        currentMap.mapName = mapName;
 
         string dir = Path.Combine(Application.persistentDataPath, "BeatMaps");
         if (!Directory.Exists(dir))
@@ -189,15 +194,17 @@ public class BeatMapEditor : MonoBehaviour
     {
         if (currentMap == null) return;
 
+        float snappedBeat = Mathf.Round(currentBeat);
+
         BeatNote existing = currentMap.notes.Find(n =>
-            Mathf.Approximately(n.beatTime, currentBeat) && n.spawnerIndex == selectedLane);
+            Mathf.Approximately(n.beatTime, snappedBeat) && n.spawnerIndex == selectedLane);
 
         if (existing != null)
         {
             currentMap.notes.Remove(existing);
         }
 
-        BeatNote note = new BeatNote(currentBeat, selectedLane, inputType);
+        BeatNote note = new BeatNote(snappedBeat, selectedLane, inputType);
         currentMap.notes.Add(note);
         currentMap.notes.Sort((a, b) => a.beatTime.CompareTo(b.beatTime));
 

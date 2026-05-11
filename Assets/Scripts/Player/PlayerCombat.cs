@@ -8,6 +8,7 @@ using System.Collections;
 /// - Flash couleur du joueur lors de l'attaque
 /// - Frappe possible à tout moment (mais penalty hors timing)
 /// - Range d'attaque visible dans la scène (Gizmos + optionnel LineRenderer)
+/// - Inflige des dégâts au joueur en cas de mauvais timing
 /// </summary>
 public class PlayerCombat : MonoBehaviour
 {
@@ -44,6 +45,7 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] private float lastRightAttackTime = -999f;
 
     private PlayerHealth playerHealth;
+    private PlayerConfig playerConfig;
     private Renderer playerRenderer;
     private Color playerOriginalColor;
     private Coroutine flashCoroutine;
@@ -53,6 +55,11 @@ public class PlayerCombat : MonoBehaviour
     {
         playerHealth = GetComponent<PlayerHealth>();
         playerRenderer = GetComponentInChildren<Renderer>();
+
+        // Récupérer le PlayerConfig via PlayerController
+        var controller = GetComponent<PlayerController>();
+        if (controller != null)
+            playerConfig = controller.config;
 
         if (playerRenderer != null)
             playerOriginalColor = playerRenderer.material.color;
@@ -93,7 +100,7 @@ public class PlayerCombat : MonoBehaviour
 
         if (EnemySpawnManager.Instance == null) return;
 
-        // Chercher l'ennemi le plus proche (pas seulement vulnérable — on peut frapper à tout moment)
+        // Chercher l'ennemi le plus proche (pas seulement vulnérable)
         EnemyBase target = EnemySpawnManager.Instance.GetClosestEnemy(
             transform.position, inputType, hitRange);
 
@@ -128,20 +135,29 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.TooSoon:
-                // Hors timing ! L'ennemi est tué mais c'est une PENALTY
+                // Hors timing ! PENALTY : dégâts + reset score
                 PlaySFX(sfxTooSoon);
                 if (ScoreManager.Instance != null)
                     ScoreManager.Instance.RegisterMiss(); // Reset score/combo/vitesse
                 if (playerHealth != null)
-                    playerHealth.FlashSliderRed(); // Flash le slider en rouge
+                {
+                    int dmg = playerConfig != null ? playerConfig.damageOnTooSoon : 5;
+                    playerHealth.TakeDamage(dmg); // TakeDamage fait déjà le flash
+                }
                 if (TimingFeedbackUI.Instance != null)
                     TimingFeedbackUI.Instance.ShowFeedback(result, enemy.transform.position);
                 break;
 
             case TimingResult.TooLate:
+                // Trop tard : dégâts réduits, score réduit mais pas reset
                 PlaySFX(sfxTooLate);
                 if (ScoreManager.Instance != null)
-                    ScoreManager.Instance.RegisterHit(result); // Score réduit mais pas reset
+                    ScoreManager.Instance.RegisterHit(result); // Score réduit
+                if (playerHealth != null)
+                {
+                    int dmg = playerConfig != null ? playerConfig.damageOnTooLate : 3;
+                    playerHealth.TakeDamage(dmg);
+                }
                 if (TimingFeedbackUI.Instance != null)
                     TimingFeedbackUI.Instance.ShowFeedback(result, enemy.transform.position);
                 break;
@@ -190,9 +206,6 @@ public class PlayerCombat : MonoBehaviour
     // RANGE CIRCLE (visuel dans la scène)
     // =========================================================================
 
-    /// <summary>
-    /// Crée un cercle LineRenderer autour du joueur pour visualiser la range.
-    /// </summary>
     private void CreateRangeCircle()
     {
         GameObject rangeGO = new GameObject("AttackRangeCircle");
@@ -208,9 +221,15 @@ public class PlayerCombat : MonoBehaviour
         rangeLineRenderer.startColor = rangeCircleColor;
         rangeLineRenderer.endColor = rangeCircleColor;
 
-        // Dessiner un cercle
         int segments = 64;
         rangeLineRenderer.positionCount = segments;
+        UpdateRangeCircle();
+    }
+
+    private void UpdateRangeCircle()
+    {
+        if (rangeLineRenderer == null) return;
+        int segments = rangeLineRenderer.positionCount;
         for (int i = 0; i < segments; i++)
         {
             float angle = (float)i / segments * 2f * Mathf.PI;
@@ -222,23 +241,10 @@ public class PlayerCombat : MonoBehaviour
 
     private void Update()
     {
-        // Mettre à jour le cercle si la range change
         if (rangeLineRenderer != null)
-        {
-            int segments = rangeLineRenderer.positionCount;
-            for (int i = 0; i < segments; i++)
-            {
-                float angle = (float)i / segments * 2f * Mathf.PI;
-                float x = Mathf.Cos(angle) * hitRange;
-                float z = Mathf.Sin(angle) * hitRange;
-                rangeLineRenderer.SetPosition(i, new Vector3(x, 0.05f, z));
-            }
-        }
+            UpdateRangeCircle();
     }
 
-    /// <summary>
-    /// Gizmos : toujours visible dans la Scene view + quand sélectionné.
-    /// </summary>
     private void OnDrawGizmos()
     {
         Gizmos.color = new Color(1f, 0f, 0f, 0.15f);

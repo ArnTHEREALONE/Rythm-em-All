@@ -67,10 +67,9 @@ public class EditorControls : MonoBehaviour
     {
         if (BeatMapEditor.Instance == null) return;
 
-        // Pas de raccourcis clavier pendant la lecture
+        // Navigation grille (ZQSD) — bloquée pendant la lecture (le curseur suit la musique)
         if (!BeatMapEditor.Instance.IsPlaying)
         {
-            // Navigation grille (ZQSD)
             if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.W))
                 OnMoveBeat(1f);
             if (Input.GetKeyDown(KeyCode.S))
@@ -79,23 +78,23 @@ public class EditorControls : MonoBehaviour
                 BeatMapEditor.Instance.MoveLane(1);
             if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.A))
                 BeatMapEditor.Instance.MoveLane(-1);
-
-            // Placement de notes
-            if (Input.GetKeyDown(KeyCode.Space))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.LeftOnly);
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.RightOnly);
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Both);
-            if (Input.GetKeyDown(KeyCode.Alpha4))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
-
-            // Suppression
-            if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
-                BeatMapEditor.Instance.DeleteNoteAtCursor();
         }
+
+        // Placement de notes — actif MÊME pendant la lecture (snap automatique au beat courant)
+        if (Input.GetKeyDown(KeyCode.Space))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.LeftOnly);
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.RightOnly);
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Both);
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
+
+        // Suppression — actif partout
+        if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
+            BeatMapEditor.Instance.DeleteNoteAtCursor();
 
         // Play/Pause (toujours actif)
         if (Input.GetKeyDown(KeyCode.P))

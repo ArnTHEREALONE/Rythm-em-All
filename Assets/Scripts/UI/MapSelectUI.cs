@@ -102,7 +102,8 @@ public class MapSelectUI : MonoBehaviour
         if (mapListContent == null) return;
 
         // === Container principal de la carte ===
-        GameObject card = new GameObject($"MapCard_{map.songName}");
+        string cardObjName = string.IsNullOrEmpty(map.mapName) ? "Map_sans_nom" : map.mapName;
+        GameObject card = new GameObject($"MapCard_{cardObjName}");
         card.transform.SetParent(mapListContent, false);
 
         // RectTransform + LayoutElement pour le ScrollView
@@ -143,14 +144,15 @@ public class MapSelectUI : MonoBehaviour
         vLayout.childForceExpandHeight = false;
 
         // Ligne 1 : Nom de la map (gros, blanc)
-        CreateTextLine(textZone.transform, map.songName, 22, Color.white, FontStyles.Bold);
+        string displayMapName = string.IsNullOrEmpty(map.mapName) ? "Map sans nom" : map.mapName;
+        CreateTextLine(textZone.transform, displayMapName, 22, Color.white, FontStyles.Bold);
 
-        // Ligne 2 : Nom de la musique (FMOD event path simplifié)
-        string musicName = ExtractMusicName(map.fmodEventPath);
+        // Ligne 2 : Nom de la musique (soit songName s'il est rempli, sinon fallback sur l'event FMOD)
+        string musicName = !string.IsNullOrEmpty(map.songName) ? map.songName : ExtractMusicName(map.fmodEventPath);
         CreateTextLine(textZone.transform, $"♪ {musicName}", 16, new Color(0.7f, 0.7f, 0.85f));
 
         // Ligne 3 : BPM + nb de notes + highscore
-        int highscore = LoadHighScore(map.songName);
+        int highscore = LoadHighScore(displayMapName);
         string details = $"{map.bpm} BPM  •  {map.notes?.Count ?? 0} notes";
         if (highscore > 0)
             details += $"  •  HS: {highscore:N0}";

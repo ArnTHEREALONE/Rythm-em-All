@@ -431,6 +431,13 @@ Créer ces GameObjects vides (`GameObject > Create Empty`) et attacher les scrip
 | `Enemy Data Spam` | `Enemy_Spam.asset` |
 | `Look Ahead Beats` | `4` |
 | `Warning Ahead Beats` | `6` (doit être > Look Ahead pour que le warning apparaisse AVANT l'ennemi) |
+| `Wave Gap Seconds` | `5` (Nouveau) |
+| `Player Health` | Glisser le `Player` (se remplit automatiquement au lancement si vide) |
+
+> [!TIP]
+> **Le Système de Vagues (Waves)**
+> `EnemySpawnManager` regroupe automatiquement les notes en "vagues". Si deux notes sont séparées par plus de `Wave Gap Seconds` (ex: 5 secondes), elles sont considérées comme deux vagues distinctes.
+> **Comportement des warnings** : Au lieu d'apparaître pour chaque ennemi individuellement, les warnings s'affichent simultanément **au début de chaque vague**, sur TOUS les spawners qui seront utilisés pendant cette vague.
 
 #### 5.6.3 Configurer TimingFeedbackUI
 
