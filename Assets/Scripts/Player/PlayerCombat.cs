@@ -2,14 +2,14 @@ using UnityEngine;
 using FMODUnity;
 using System.Collections;
 
-/// <summary>
-/// Système de combat du joueur.
-/// - 2 inputs de frappe (gauche/droite)
-/// - Flash couleur du joueur lors de l'attaque
-/// - Frappe possible à tout moment (mais penalty hors timing)
-/// - Range d'attaque visible dans la scène (Gizmos + optionnel LineRenderer)
-/// - Inflige des dégâts au joueur en cas de mauvais timing
-/// </summary>
+
+
+
+
+
+
+
+
 public class PlayerCombat : MonoBehaviour
 {
     [Header("=== Configuration ===")]
@@ -56,7 +56,7 @@ public class PlayerCombat : MonoBehaviour
         playerHealth = GetComponent<PlayerHealth>();
         playerRenderer = GetComponentInChildren<Renderer>();
 
-        // Récupérer le PlayerConfig via PlayerController
+        
         var controller = GetComponent<PlayerController>();
         if (controller != null)
             playerConfig = controller.config;
@@ -64,7 +64,7 @@ public class PlayerCombat : MonoBehaviour
         if (playerRenderer != null)
             playerOriginalColor = playerRenderer.material.color;
 
-        // Créer le cercle de range si activé
+        
         if (showRangeInGame)
             CreateRangeCircle();
     }
@@ -95,12 +95,12 @@ public class PlayerCombat : MonoBehaviour
 
     private void PerformAttack(EnemyInputType inputType)
     {
-        // Flash du joueur à chaque attaque
+        
         FlashPlayer();
 
         if (EnemySpawnManager.Instance == null) return;
 
-        // Chercher l'ennemi le plus proche (pas seulement vulnérable)
+        
         EnemyBase target = EnemySpawnManager.Instance.GetClosestEnemy(
             transform.position, inputType, hitRange);
 
@@ -135,24 +135,24 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.TooSoon:
-                // Hors timing ! PENALTY : dégâts + reset score
+                
                 PlaySFX(sfxTooSoon);
                 if (ScoreManager.Instance != null)
-                    ScoreManager.Instance.RegisterMiss(); // Reset score/combo/vitesse
+                    ScoreManager.Instance.RegisterMiss(); 
                 if (playerHealth != null)
                 {
                     int dmg = playerConfig != null ? playerConfig.damageOnTooSoon : 5;
-                    playerHealth.TakeDamage(dmg); // TakeDamage fait déjà le flash
+                    playerHealth.TakeDamage(dmg); 
                 }
                 if (TimingFeedbackUI.Instance != null)
                     TimingFeedbackUI.Instance.ShowFeedback(result, enemy.transform.position);
                 break;
 
             case TimingResult.TooLate:
-                // Trop tard : dégâts réduits, score réduit mais pas reset
+                
                 PlaySFX(sfxTooLate);
                 if (ScoreManager.Instance != null)
-                    ScoreManager.Instance.RegisterHit(result); // Score réduit
+                    ScoreManager.Instance.RegisterHit(result); 
                 if (playerHealth != null)
                 {
                     int dmg = playerConfig != null ? playerConfig.damageOnTooLate : 3;
@@ -168,9 +168,9 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Flash couleur du joueur pendant une fraction de seconde.
-    /// </summary>
+    
+    
+    
     private void FlashPlayer()
     {
         if (playerRenderer == null) return;
@@ -202,9 +202,9 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    // =========================================================================
-    // RANGE CIRCLE (visuel dans la scène)
-    // =========================================================================
+    
+    
+    
 
     private void CreateRangeCircle()
     {

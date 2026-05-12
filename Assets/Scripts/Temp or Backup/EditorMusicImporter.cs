@@ -44,7 +44,7 @@ public class EditorMusicImporter : MonoBehaviour
 
         if (BeatMapEditor.Instance != null)
         {
-            // Correction : rechercher l'entrée MusicEntry correspondante dans la bibliothèque musicale
+            
             if (BeatMapEditor.Instance != null)
             {
                 Debug.Log("EditorMusicImporter: Music imported. Please assign it in the MusicDatabase.");

@@ -1,10 +1,10 @@
 using UnityEngine;
 using FMODUnity;
 
-/// <summary>
-/// Dash à distance fixe. Le cooldown est réduit par la vitesse du jeu.
-/// SFX via FMOD EventReference.
-/// </summary>
+
+
+
+
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerDash : MonoBehaviour
 {
@@ -87,7 +87,7 @@ public class PlayerDash : MonoBehaviour
             : baseCooldown;
         cooldownTimer = currentCooldown;
 
-        // SFX via FMOD
+        
         if (!dashSFX.IsNull && FMODAudioManager.Instance != null)
         {
             FMODAudioManager.Instance.PlaySFX(dashSFX);

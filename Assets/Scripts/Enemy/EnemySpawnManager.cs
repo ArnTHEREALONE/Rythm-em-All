@@ -1,10 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// Structure pour une vague d'ennemis.
-/// Une vague = un groupe de notes consécutives sans pause ≥ waveGapSeconds entre elles.
-/// </summary>
+
+
+
+
 [System.Serializable]
 public class EnemyWave
 {
@@ -15,15 +15,15 @@ public class EnemyWave
     public List<BeatNote> notes = new List<BeatNote>();
 }
 
-/// <summary>
-/// Gestionnaire des spawns d'ennemis. Lit la beatmap et spawn les ennemis.
-/// Gère les warnings par VAGUE et le cleanup.
-///
-/// SYSTÈME DE VAGUES :
-/// 1. À l'initialisation, les notes sont groupées en vagues.
-/// 2. Un gap ≥ waveGapSeconds entre deux notes consécutives = nouvelle vague.
-/// 3. Les warnings s'affichent au début de chaque vague (sur tous les spawners de la vague).
-/// </summary>
+
+
+
+
+
+
+
+
+
 public class EnemySpawnManager : MonoBehaviour
 {
     public static EnemySpawnManager Instance { get; private set; }
@@ -85,7 +85,7 @@ public class EnemySpawnManager : MonoBehaviour
             currentMap.notes.Sort((a, b) => a.beatTime.CompareTo(b.beatTime));
         }
 
-        // Auto-trouver le PlayerHealth si pas branché
+        
         if (playerHealth == null)
         {
             var player = FindFirstObjectByType<PlayerController>();
@@ -93,14 +93,14 @@ public class EnemySpawnManager : MonoBehaviour
                 playerHealth = player.health;
         }
 
-        // Détecter les vagues
+        
         DetectWaves();
     }
 
-    /// <summary>
-    /// Détecte les vagues en analysant les gaps entre notes consécutives.
-    /// Un gap ≥ waveGapSeconds (converti en beats) = nouvelle vague.
-    /// </summary>
+    
+    
+    
+    
     private void DetectWaves()
     {
         waves.Clear();
@@ -111,7 +111,7 @@ public class EnemySpawnManager : MonoBehaviour
             return;
         }
 
-        // Convertir le gap en beats
+        
         float waveGapBeats = waveGapSeconds / currentMap.SecondsPerBeat;
 
         EnemyWave currentWave = new EnemyWave
@@ -126,17 +126,17 @@ public class EnemySpawnManager : MonoBehaviour
         {
             BeatNote note = currentMap.notes[i];
 
-            // Si c'est pas la première note et qu'il y a un gap
+            
             if (i > 0)
             {
                 float gap = note.beatTime - currentMap.notes[i - 1].beatTime;
                 if (gap >= waveGapBeats)
                 {
-                    // Fermer la vague actuelle
+                    
                     currentWave.endBeat = currentMap.notes[i - 1].beatTime;
                     waves.Add(currentWave);
 
-                    // Nouvelle vague
+                    
                     currentWave = new EnemyWave
                     {
                         waveIndex = waves.Count,
@@ -147,13 +147,13 @@ public class EnemySpawnManager : MonoBehaviour
                 }
             }
 
-            // Ajouter la note à la vague courante
+            
             currentWave.notes.Add(note);
             if (!currentWave.spawnerIndices.Contains(note.spawnerIndex))
                 currentWave.spawnerIndices.Add(note.spawnerIndex);
         }
 
-        // Fermer la dernière vague
+        
         currentWave.endBeat = currentMap.notes[currentMap.notes.Count - 1].beatTime;
         waves.Add(currentWave);
 
@@ -192,11 +192,11 @@ public class EnemySpawnManager : MonoBehaviour
         activeEnemyCount = activeEnemies.Count;
     }
 
-    /// <summary>
-    /// Affiche les warnings au début de chaque VAGUE.
-    /// Quand le beat courant atteint (wave.startBeat - warningAheadBeats),
-    /// les warnings s'affichent sur TOUS les spawners de la vague.
-    /// </summary>
+    
+    
+    
+    
+    
     private void ProcessWaveWarnings(float currentBeat)
     {
         while (nextWaveWarningIndex < waves.Count)
@@ -206,12 +206,12 @@ public class EnemySpawnManager : MonoBehaviour
 
             if (currentBeat >= warningBeat)
             {
-                // Afficher le warning sur CHAQUE spawner de cette vague
+                
                 foreach (int spawnerIdx in wave.spawnerIndices)
                 {
                     if (spawnerIdx >= 0 && spawnerIdx < spawners.Count)
                     {
-                        // Déterminer la couleur (prendre le type dominant de la vague)
+                        
                         Color warningColor = Color.red;
                         var firstNote = wave.notes.Find(n => n.spawnerIndex == spawnerIdx);
                         if (firstNote != null)
@@ -221,10 +221,10 @@ public class EnemySpawnManager : MonoBehaviour
                                 warningColor = data.warningColor;
                         }
 
-                        // Durée du warning = temps entre maintenant et le premier spawn
+                        
                         float warningDuration = (wave.startBeat - lookAheadBeats - currentBeat)
                             * currentMap.SecondsPerBeat;
-                        warningDuration = Mathf.Max(warningDuration, 1f); // au moins 1 seconde
+                        warningDuration = Mathf.Max(warningDuration, 1f); 
 
                         spawners[spawnerIdx].ShowWarning(warningColor, warningDuration);
                     }
@@ -299,9 +299,9 @@ public class EnemySpawnManager : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// Quand un ennemi explose naturellement (pas tué par le joueur) = miss + dégâts.
-    /// </summary>
+    
+    
+    
     private void HandleEnemyExploded(EnemyBase enemy)
     {
         if (ScoreManager.Instance != null)
@@ -310,7 +310,7 @@ public class EnemySpawnManager : MonoBehaviour
         if (TimingFeedbackUI.Instance != null)
             TimingFeedbackUI.Instance.ShowFeedback(TimingResult.Miss, enemy.transform.position);
 
-        // Dégâts au joueur (via la ref directe)
+        
         if (playerHealth != null && enemy.data != null)
         {
             playerHealth.TakeDamage(enemy.data.damage);
@@ -322,9 +322,9 @@ public class EnemySpawnManager : MonoBehaviour
         activeEnemies.RemoveAll(e => e == null);
     }
 
-    /// <summary>
-    /// Trouve l'ennemi le plus proche (Moving ou Vulnerable).
-    /// </summary>
+    
+    
+    
     public EnemyBase GetClosestEnemy(Vector3 playerPosition, EnemyInputType inputType, float maxRange)
     {
         EnemyBase closest = null;

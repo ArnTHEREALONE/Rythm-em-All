@@ -3,9 +3,9 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 
-/// <summary>
-/// Santé du joueur. Gère HP, soin passif, soin on-kill, et flash du slider.
-/// </summary>
+
+
+
 public class PlayerHealth : MonoBehaviour
 {
     [Header("=== Stats ===")]
@@ -43,14 +43,14 @@ public class PlayerHealth : MonoBehaviour
         currentHP = maxHP;
         timeSinceLastDamage = passiveHealDelay + 1f;
 
-        // Récupérer la ref du fill pour le flash et la couleur
+        
         FindSliderFillImage();
         UpdateUI();
     }
 
-    /// <summary>
-    /// Cherche l'Image du fill du slider, avec fallback par nom si fillRect est null.
-    /// </summary>
+    
+    
+    
     private void FindSliderFillImage()
     {
         if (hpSlider == null)
@@ -59,13 +59,13 @@ public class PlayerHealth : MonoBehaviour
             return;
         }
 
-        // Méthode 1 : via fillRect (standard)
+        
         if (hpSlider.fillRect != null)
         {
             sliderFillImage = hpSlider.fillRect.GetComponent<Image>();
         }
 
-        // Méthode 2 : fallback — chercher un enfant nommé "Fill"
+        
         if (sliderFillImage == null)
         {
             Transform fillTransform = hpSlider.transform.Find("Fill Area/Fill");
@@ -75,7 +75,7 @@ public class PlayerHealth : MonoBehaviour
             }
         }
 
-        // Méthode 3 : fallback profond — chercher dans tous les enfants
+        
         if (sliderFillImage == null)
         {
             foreach (Transform child in hpSlider.GetComponentsInChildren<Transform>(true))
@@ -147,7 +147,7 @@ public class PlayerHealth : MonoBehaviour
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
 
-        // Flash le slider automatiquement quand on prend des dégâts
+        
         FlashSliderRed();
     }
 
@@ -174,9 +174,9 @@ public class PlayerHealth : MonoBehaviour
         UpdateUI();
     }
 
-    /// <summary>
-    /// Flash le slider HP en rouge.
-    /// </summary>
+    
+    
+    
     public void FlashSliderRed()
     {
         if (sliderFillImage == null)
@@ -225,7 +225,7 @@ public class PlayerHealth : MonoBehaviour
             hpSlider.maxValue = maxHP;
             hpSlider.value = currentHP;
 
-            // Ne pas écraser la couleur si un flash est en cours
+            
             if (flashSliderCoroutine == null && sliderFillImage != null)
             {
                 sliderFillImage.color = GetHealthColor();

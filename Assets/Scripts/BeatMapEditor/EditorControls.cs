@@ -2,12 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Contrôles de transport de l'éditeur de beatmap.
-/// 5 boutons : -2 beats, -1 beat, play/pause, +1 beat, +2 beats.
-/// Gère aussi les raccourcis clavier pour la navigation dans la grille
-/// et le placement de notes.
-/// </summary>
+
+
+
+
+
+
 public class EditorControls : MonoBehaviour
 {
     [Header("=== Boutons de transport ===")]
@@ -38,7 +38,7 @@ public class EditorControls : MonoBehaviour
 
     private void Start()
     {
-        // Navigation transport
+        
         if (prevTwoBeatsButton != null)
             prevTwoBeatsButton.onClick.AddListener(() => OnMoveBeat(-2f));
         if (prevBeatButton != null)
@@ -50,13 +50,13 @@ public class EditorControls : MonoBehaviour
         if (nextTwoBeatsButton != null)
             nextTwoBeatsButton.onClick.AddListener(() => OnMoveBeat(2f));
 
-        // Métronome
+        
         if (metronomeToggle != null)
         {
             metronomeToggle.onValueChanged.AddListener(OnMetronomeToggled);
         }
 
-        // Retour menu
+        
         if (backToMenuButton != null)
         {
             backToMenuButton.onClick.AddListener(OnBackToMenu);
@@ -67,7 +67,7 @@ public class EditorControls : MonoBehaviour
     {
         if (BeatMapEditor.Instance == null) return;
 
-        // Navigation grille (ZQSD) — bloquée pendant la lecture (le curseur suit la musique)
+        
         if (!BeatMapEditor.Instance.IsPlaying)
         {
             if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.W))
@@ -80,7 +80,7 @@ public class EditorControls : MonoBehaviour
                 BeatMapEditor.Instance.MoveLane(-1);
         }
 
-        // Placement de notes — actif MÊME pendant la lecture (snap automatique au beat courant)
+        
         if (Input.GetKeyDown(KeyCode.Space))
             BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -92,15 +92,15 @@ public class EditorControls : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha4))
             BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
 
-        // Suppression — actif partout
+        
         if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
             BeatMapEditor.Instance.DeleteNoteAtCursor();
 
-        // Play/Pause (toujours actif)
+        
         if (Input.GetKeyDown(KeyCode.P))
             OnPlayPause();
 
-        // Mise à jour du texte play/pause
+        
         if (playPauseText != null)
             playPauseText.text = BeatMapEditor.Instance.IsPlaying ? "⏸" : "▶";
     }

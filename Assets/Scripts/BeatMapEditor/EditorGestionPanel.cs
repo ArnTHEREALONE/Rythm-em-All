@@ -3,12 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using System.IO;
 
-/// <summary>
-/// Panneau de gestion (Save / Load) de l'éditeur de beatmap.
-/// Contient deux champs texte + boutons pour sauvegarder et charger
-/// des beatmaps par nom.
-/// Ce panneau coulisse depuis le bord gauche de l'écran via EditorSlidingPanel.
-/// </summary>
+
+
+
+
+
+
 public class EditorGestionPanel : MonoBehaviour
 {
     [Header("=== Save ===")]
@@ -37,7 +37,7 @@ public class EditorGestionPanel : MonoBehaviour
         if (loadButton != null)
             loadButton.onClick.AddListener(OnLoadClicked);
 
-        // Préremplir le champ save avec le nom actuel
+        
         if (saveNameInput != null && BeatMapEditor.Instance?.CurrentMap != null)
         {
             string currentMapName = BeatMapEditor.Instance.CurrentMap.mapName;
@@ -47,9 +47,9 @@ public class EditorGestionPanel : MonoBehaviour
         ClearStatus();
     }
 
-    /// <summary>
-    /// Sauvegarde la beatmap avec le nom entré dans le champ Save.
-    /// </summary>
+    
+    
+    
     private void OnSaveClicked()
     {
         if (BeatMapEditor.Instance == null) return;
@@ -66,9 +66,9 @@ public class EditorGestionPanel : MonoBehaviour
         SetStatus($"✓ Beatmap '{mapName}' sauvegardée !", new Color(0f, 1f, 0.53f));
     }
 
-    /// <summary>
-    /// Charge une beatmap par le nom entré dans le champ Load.
-    /// </summary>
+    
+    
+    
     private void OnLoadClicked()
     {
         if (BeatMapEditor.Instance == null) return;
@@ -94,7 +94,7 @@ public class EditorGestionPanel : MonoBehaviour
         BeatMapEditor.Instance.LoadMap(filePath);
         SetStatus($"✓ Beatmap '{mapName}' chargée !", new Color(0f, 1f, 0.53f));
 
-        // Mettre à jour le champ save avec le nom chargé
+        
         if (saveNameInput != null)
             saveNameInput.text = mapName;
     }

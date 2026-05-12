@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Composant générique pour animer un panneau UI coulissant.
-/// Le panneau glisse depuis un bord de l'écran (gauche ou droite)
-/// quand l'utilisateur clique sur le bouton toggle.
-/// Le bouton toggle reste toujours visible sur le bord de l'écran.
-/// </summary>
+
+
+
+
+
+
 public class EditorSlidingPanel : MonoBehaviour
 {
     public enum SlideDirection { Left, Right }
@@ -39,7 +39,7 @@ public class EditorSlidingPanel : MonoBehaviour
     private float targetX;
     private float currentVelocity;
 
-    /// <summary>Le panneau est-il actuellement ouvert ?</summary>
+    
     public bool IsOpen => isOpen;
 
     private void Start()
@@ -47,7 +47,7 @@ public class EditorSlidingPanel : MonoBehaviour
         if (toggleButton != null)
             toggleButton.onClick.AddListener(Toggle);
 
-        // Position initiale : hors écran
+        
         SetPanelPosition(GetHiddenX());
         UpdateButtonText();
     }
@@ -62,27 +62,27 @@ public class EditorSlidingPanel : MonoBehaviour
         panelRect.anchoredPosition = pos;
     }
 
-    /// <summary>
-    /// Ouvre ou ferme le panneau.
-    /// </summary>
+    
+    
+    
     public void Toggle()
     {
         isOpen = !isOpen;
         UpdateButtonText();
     }
 
-    /// <summary>
-    /// Force l'ouverture du panneau.
-    /// </summary>
+    
+    
+    
     public void Open()
     {
         isOpen = true;
         UpdateButtonText();
     }
 
-    /// <summary>
-    /// Force la fermeture du panneau.
-    /// </summary>
+    
+    
+    
     public void Close()
     {
         isOpen = false;
@@ -91,8 +91,8 @@ public class EditorSlidingPanel : MonoBehaviour
 
     private float GetHiddenX()
     {
-        // Panneau droit : caché à droite (position X positive hors écran)
-        // Panneau gauche : caché à gauche (position X négative hors écran)
+        
+        
         return direction == SlideDirection.Right ? panelWidth : -panelWidth;
     }
 

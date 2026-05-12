@@ -3,13 +3,13 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-/// <summary>
-/// Timeline de l'éditeur de beatmap.
-/// Affiche une bande horizontale colorée proportionnelle à la durée de la musique,
-/// avec des beat markers verticaux et 12 lignes de lanes horizontales.
-/// La bande est grabbable pour naviguer horizontalement.
-/// Un mini-slider en bas indique la position globale dans la timeline.
-/// </summary>
+
+
+
+
+
+
+
 public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("=== Références ===")]
@@ -46,7 +46,7 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
     private float dragStartX;
     private float dragStartBeat;
 
-    // Nombre total de beats dans la musique (calculé dynamiquement via FMOD)
+    
     private float totalBeats = 128f;
 
     private void Start()
@@ -57,10 +57,10 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         }
     }
 
-    /// <summary>
-    /// Rafraîchit la timeline : met à jour la taille de la bande,
-    /// les textes, et la position du mini-slider.
-    /// </summary>
+    
+    
+    
+    
     public void Refresh()
     {
         if (BeatMapEditor.Instance == null) return;
@@ -70,16 +70,16 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
         float currentBeat = BeatMapEditor.Instance.CurrentBeat;
 
-        // Calculer le nombre total de beats depuis la durée FMOD
+        
         UpdateTotalBeats(map);
 
-        // Mettre à jour la taille de la bande de timeline
+        
         UpdateBandSize();
 
-        // Mettre à jour la position (scroll) de la bande
+        
         UpdateBandPosition(currentBeat);
 
-        // Textes
+        
         if (currentBeatText != null)
             currentBeatText.text = $"Beat: {currentBeat:F1}";
 
@@ -91,16 +91,16 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
             currentTimeText.text = $"{min:D2}:{sec:D2}";
         }
 
-        // Mini-slider
+        
         if (miniSlider != null && !isDragging && totalBeats > 0)
         {
             miniSlider.SetValueWithoutNotify(currentBeat / totalBeats);
         }
     }
 
-    /// <summary>
-    /// Met à jour le nombre total de beats depuis la durée FMOD.
-    /// </summary>
+    
+    
+    
     private void UpdateTotalBeats(BeatMapData map)
     {
         if (FMODAudioManager.Instance != null && FMODAudioManager.Instance.GetMusicLengthSeconds() > 0)
@@ -112,7 +112,7 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         }
         else
         {
-            // Fallback : si pas de musique chargée, utiliser les notes existantes
+            
             if (map.notes != null && map.notes.Count > 0)
             {
                 totalBeats = map.notes[map.notes.Count - 1].beatTime + 16f;
@@ -124,9 +124,9 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         }
     }
 
-    /// <summary>
-    /// Ajuste la largeur de la bande de timeline selon pixelsPerBeat × totalBeats.
-    /// </summary>
+    
+    
+    
     private void UpdateBandSize()
     {
         if (timelineBand == null) return;
@@ -137,9 +137,9 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         timelineBand.sizeDelta = size;
     }
 
-    /// <summary>
-    /// Positionne la bande pour que le beat actuel soit centré dans le viewport.
-    /// </summary>
+    
+    
+    
     private void UpdateBandPosition(float currentBeat)
     {
         if (timelineBand == null || viewport == null) return;
@@ -147,10 +147,10 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         float viewportWidth = viewport.rect.width;
         float beatX = currentBeat * pixelsPerBeat;
 
-        // Centrer le beat actuel dans le viewport
+        
         float offsetX = -(beatX - viewportWidth / 2f);
 
-        // Clamper pour ne pas montrer du vide avant le début ou après la fin
+        
         float totalWidth = timelineBand.sizeDelta.x;
         float maxOffset = 0f;
         float minOffset = -(totalWidth - viewportWidth);
@@ -163,7 +163,7 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         timelineBand.anchoredPosition = pos;
     }
 
-    // === Drag pour naviguer dans la timeline ===
+    
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -179,7 +179,7 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         if (!isDragging || BeatMapEditor.Instance == null) return;
 
         float deltaPixels = eventData.position.x - dragStartX;
-        float deltaBeats = -deltaPixels / pixelsPerBeat; // Négatif car on drag dans le sens opposé
+        float deltaBeats = -deltaPixels / pixelsPerBeat; 
 
         float targetBeat = Mathf.Max(0f, dragStartBeat + deltaBeats);
         float currentBeat = BeatMapEditor.Instance.CurrentBeat;
@@ -191,7 +191,7 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         isDragging = false;
     }
 
-    // === Mini-slider ===
+    
 
     private void OnMiniSliderChanged(float value)
     {
@@ -202,9 +202,9 @@ public class EditorTimeline : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         BeatMapEditor.Instance.GoToBeat(targetBeat);
     }
 
-    /// <summary>
-    /// Retourne le nombre total de beats (pour d'autres scripts).
-    /// </summary>
+    
+    
+    
     public float GetTotalBeats()
     {
         return totalBeats;

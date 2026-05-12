@@ -4,11 +4,11 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
 
-/// <summary>
-/// Grille de l'éditeur : affiche les notes sur la timeline.
-/// Les notes sont des ronds colorés 2D positionnés sur une grille
-/// lanes (horizontal) × beats (vertical), avec drag & drop snappé.
-/// </summary>
+
+
+
+
+
 public class EditorGrid : MonoBehaviour, IPointerClickHandler
 {
     [Header("=== Configuration ===")]
@@ -42,7 +42,7 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
     private List<GameObject> gridLines = new List<GameObject>();
     private GameObject cursorVisual;
 
-    // Drag state
+    
     private BeatNote draggedNote;
     private GameObject draggedVisual;
 
@@ -81,10 +81,10 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         UpdateCursor(currentBeat, startBeat, endBeat);
     }
 
-    /// <summary>
-    /// Dessine les lignes de la grille : lignes de lanes (horizontales)
-    /// et lignes de beats (verticales).
-    /// </summary>
+    
+    
+    
+    
     private void DrawGridLines(float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -92,14 +92,14 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         float gridWidth = gridArea.rect.width;
         float gridHeight = gridArea.rect.height;
 
-        // 12 lignes horizontales de lanes
+        
         for (int i = 0; i <= laneCount; i++)
         {
             float x = (float)i / laneCount * gridWidth - gridWidth / 2f;
             CreateLine(new Vector2(x, -gridHeight / 2f), new Vector2(x, gridHeight / 2f), colorLaneLine, 1f);
         }
 
-        // Lignes de beats verticales
+        
         int startBeatInt = Mathf.FloorToInt(startBeat);
         int endBeatInt = Mathf.CeilToInt(endBeat);
 
@@ -155,14 +155,14 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            // Créer un rond (cercle) programmatiquement
+            
             noteGO = new GameObject($"Note_{note.beatTime}_{note.spawnerIndex}");
             noteGO.transform.SetParent(gridArea, false);
             var img = noteGO.AddComponent<Image>();
             img.color = GetColorForInputType(note.inputType);
 
-            // Rendre rond : utiliser un sprite circulaire si disponible,
-            // sinon utiliser la forme carrée (le prefab NoteCircle est recommandé)
+            
+            
             var rect = noteGO.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(noteDiameter, noteDiameter);
         }
@@ -173,16 +173,16 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         if (image != null)
             image.color = GetColorForInputType(note.inputType);
 
-        // Ajouter le drag handler pour le drag & drop
+        
         var dragHandler = noteGO.AddComponent<EditorNoteDragHandler>();
         dragHandler.Initialize(note, this);
 
         noteVisuals.Add(noteGO);
     }
 
-    /// <summary>
-    /// Positionne un GameObject dans la grille selon lane et beat.
-    /// </summary>
+    
+    
+    
     public void PositionInGrid(GameObject go, int lane, float beat, float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -203,10 +203,10 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         rect.anchoredPosition = new Vector2(x, y);
     }
 
-    /// <summary>
-    /// Convertit une position UI en coordonnées grille (lane, beat).
-    /// Utilisé par le drag & drop pour snapper.
-    /// </summary>
+    
+    
+    
+    
     public (int lane, float beat) ScreenToGrid(Vector2 localPosition)
     {
         if (gridArea == null) return (0, 0);
@@ -218,7 +218,7 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         float startBeat = currentBeat - visibleBeats / 4f;
         float endBeat = currentBeat + visibleBeats * 3f / 4f;
 
-        // Inverse de PositionInGrid
+        
         float laneWidth = gridWidth / laneCount;
         int lane = Mathf.Clamp(Mathf.FloorToInt((localPosition.x + gridWidth / 2f) / laneWidth), 0, laneCount - 1);
 
@@ -236,7 +236,7 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         RectTransformUtility.ScreenPointToLocalPointInRectangle(gridArea, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
         var (lane, beat) = ScreenToGrid(localPoint);
 
-        // Si on a cliqué et qu'on n'est pas en train de drag, on place (ou on retire si elle existe déjà)
+        
         BeatMapEditor.Instance.PlaceNoteAt(beat, lane, EnemyInputType.Any);
     }
 

@@ -107,9 +107,9 @@ public class ScoreManager : MonoBehaviour
 
 public enum TimingResult
 {
-    TooSoon,    // Trop tôt — pas de dégât, feedback négatif
-    Perfect,    // Timing parfait — full damage + bonus score + speed up
-    Good,       // Bon timing — full damage, score normal, léger speed up
-    TooLate,    // Trop tard — demi-dégât, feedback
-    Miss        // Raté — ennemi explose, dégâts au joueur, speed reset
+    TooSoon,    
+    Perfect,    
+    Good,       
+    TooLate,    
+    Miss        
 }

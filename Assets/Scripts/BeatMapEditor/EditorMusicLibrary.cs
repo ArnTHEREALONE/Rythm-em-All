@@ -3,12 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 
-/// <summary>
-/// Liste des musiques disponibles depuis le MusicDatabase ScriptableObject.
-/// Chaque musique est affichée comme un mini-panneau avec :
-/// nom, BPM, durée (récupérée dynamiquement via FMOD), et bouton "Sélectionner".
-/// Ce panneau coulisse depuis le bord droit via EditorSlidingPanel.
-/// </summary>
+
+
+
+
+
+
 public class EditorMusicLibrary : MonoBehaviour
 {
     [Header("=== Références ===")]
@@ -44,12 +44,12 @@ public class EditorMusicLibrary : MonoBehaviour
         RefreshList();
     }
 
-    /// <summary>
-    /// Rafraîchit la liste depuis le MusicDatabase.
-    /// </summary>
+    
+    
+    
     public void RefreshList()
     {
-        // Nettoyer
+        
         if (listContent != null)
         {
             foreach (Transform child in listContent)
@@ -65,7 +65,7 @@ public class EditorMusicLibrary : MonoBehaviour
             return;
         }
 
-        // Créer un item pour chaque entrée
+        
         for (int i = 0; i < musicDatabase.entries.Count; i++)
         {
             MusicEntry entry = musicDatabase.entries[i];
@@ -73,15 +73,15 @@ public class EditorMusicLibrary : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Crée un mini-panneau (carte) pour une entrée musicale.
-    /// Affiche : nom, BPM, durée, bouton "Sélectionner".
-    /// </summary>
+    
+    
+    
+    
     private void CreateMusicCard(MusicEntry entry, int index)
     {
         if (listContent == null) return;
 
-        // === Card Root ===
+        
         GameObject card = new GameObject($"MusicCard_{entry.displayName}");
         card.transform.SetParent(listContent, false);
 
@@ -99,20 +99,20 @@ public class EditorMusicLibrary : MonoBehaviour
         vertLayout.childForceExpandWidth = true;
         vertLayout.childForceExpandHeight = false;
 
-        // === Nom de la musique ===
+        
         CreateTextElement(card.transform, entry.displayName, 20, FontStyles.Bold, textColor, 28);
 
-        // === Ligne BPM ===
+        
         CreateTextElement(card.transform, $"BPM: {entry.bpm}", 15, FontStyles.Normal, subtitleColor, 22);
 
-        // === Ligne Durée (récupérée dynamiquement, placeholder pour l'instant) ===
+        
         var durationText = CreateTextElement(card.transform, "Durée: --:--", 15, FontStyles.Normal, subtitleColor, 22);
 
-        // La durée sera mise à jour si FMOD peut la fournir
-        // (nécessite de charger temporairement l'event pour obtenir la longueur)
+        
+        
         UpdateDurationText(entry, durationText);
 
-        // === Bouton Sélectionner ===
+        
         GameObject btnGO = new GameObject("SelectButton");
         btnGO.transform.SetParent(card.transform, false);
 
@@ -128,7 +128,7 @@ public class EditorMusicLibrary : MonoBehaviour
         btnColors.pressedColor = new Color(0.1f, 0.4f, 0.8f, 1f);
         btn.colors = btnColors;
 
-        // Texte du bouton
+        
         var btnTextGO = new GameObject("Text");
         btnTextGO.transform.SetParent(btnGO.transform, false);
         var btnText = btnTextGO.AddComponent<TextMeshProUGUI>();
@@ -143,11 +143,11 @@ public class EditorMusicLibrary : MonoBehaviour
         btnTextRect.offsetMin = Vector2.zero;
         btnTextRect.offsetMax = Vector2.zero;
 
-        // Listener
+        
         MusicEntry capturedEntry = entry;
         btn.onClick.AddListener(() => OnSelectClicked(capturedEntry));
 
-        // Track
+        
         var item = new MusicItemUI
         {
             root = card,
@@ -177,15 +177,15 @@ public class EditorMusicLibrary : MonoBehaviour
         return tmp;
     }
 
-    /// <summary>
-    /// Tente de récupérer la durée de la musique via FMOD et met à jour le texte.
-    /// </summary>
+    
+    
+    
     private void UpdateDurationText(MusicEntry entry, TextMeshProUGUI durationText)
     {
         if (durationText == null) return;
 
-        // On tente de récupérer la durée depuis l'EventDescription FMOD
-        // sans avoir besoin de créer une instance complète
+        
+        
         try
         {
             if (!entry.fmodEvent.IsNull)
@@ -206,28 +206,28 @@ public class EditorMusicLibrary : MonoBehaviour
         }
         catch (System.Exception)
         {
-            // Si FMOD n'est pas prêt, garder le placeholder
+            
             durationText.text = "Durée: --:--";
         }
     }
 
-    /// <summary>
-    /// Appelé quand l'utilisateur clique "Sélectionner" sur une musique.
-    /// Sélectionne la musique et crée une timeline vide.
-    /// </summary>
+    
+    
+    
+    
     private void OnSelectClicked(MusicEntry entry)
     {
         if (entry == null) return;
 
         selectedEntry = entry;
 
-        // Highlight visuel
+        
         foreach (var item in musicItems)
         {
             item.background.color = (item.entry == entry) ? cardBackgroundSelected : cardBackground;
         }
 
-        // Appliquer la sélection dans BeatMapEditor
+        
         if (BeatMapEditor.Instance != null)
         {
             BeatMapEditor.Instance.SelectMusic(entry);
