@@ -234,6 +234,11 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Victory;
         BeatManager.Instance?.StopBeat();
         Debug.Log($"Victory! Score: {ScoreManager.Instance?.TotalScore}, Best Combo: {ScoreManager.Instance?.BestCombo}");
+
+        if (SelectedBeatMap != null && ScoreManager.Instance != null)
+        {
+            MapSelectUI.SaveHighScore(SelectedBeatMap.mapName, ScoreManager.Instance.TotalScore);
+        }
     }
 
     public void RestartGame()

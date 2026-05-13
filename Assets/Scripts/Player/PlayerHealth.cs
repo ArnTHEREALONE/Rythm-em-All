@@ -23,6 +23,12 @@ public class PlayerHealth : MonoBehaviour
     [Tooltip("Durée du flash en secondes")]
     public float flashDuration = 0.3f;
 
+    [Header("=== SFX (FMOD) ===")]
+    public FMODUnity.EventReference healOnKillSFX;
+    public FMODUnity.EventReference passiveHealSFX;
+    public FMODUnity.EventReference healMaxSFX;
+    public FMODUnity.EventReference damageSFX;
+
     [Header("=== État (debug) ===")]
     [SerializeField] private float currentHP;
     [SerializeField] private float timeSinceLastDamage;
@@ -138,6 +144,9 @@ public class PlayerHealth : MonoBehaviour
 
         Debug.Log($"PlayerHealth: Dégâts reçus = {amount}, HP = {currentHP}/{maxHP}");
 
+        if (!damageSFX.IsNull && FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.PlaySFX(damageSFX);
+
         if (currentHP <= 0f)
         {
             currentHP = 0f;
@@ -155,21 +164,49 @@ public class PlayerHealth : MonoBehaviour
     {
         if (IsDead) return;
 
+        bool wasNotMax = currentHP < maxHP;
         currentHP = Mathf.Min(currentHP + healOnKillAmount, maxHP);
+        
+        if (!healOnKillSFX.IsNull && FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.PlaySFX(healOnKillSFX);
+
+        if (wasNotMax && currentHP >= maxHP && !healMaxSFX.IsNull && FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.PlaySFX(healMaxSFX);
+
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
     }
 
+    private float passiveHealSfxTimer = 0f;
+
     private void PassiveHeal()
     {
+        bool wasNotMax = currentHP < maxHP;
         currentHP = Mathf.Min(currentHP + passiveHealRate * Time.deltaTime, maxHP);
+        
+        passiveHealSfxTimer -= Time.deltaTime;
+        if (passiveHealSfxTimer <= 0f)
+        {
+            if (!passiveHealSFX.IsNull && FMODAudioManager.Instance != null)
+                FMODAudioManager.Instance.PlaySFX(passiveHealSFX);
+            passiveHealSfxTimer = 1f; // Play at most once per second
+        }
+
+        if (wasNotMax && currentHP >= maxHP && !healMaxSFX.IsNull && FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.PlaySFX(healMaxSFX);
+
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
     }
 
     public void FullHeal()
     {
+        bool wasNotMax = currentHP < maxHP;
         currentHP = maxHP;
+        
+        if (wasNotMax && !healMaxSFX.IsNull && FMODAudioManager.Instance != null)
+            FMODAudioManager.Instance.PlaySFX(healMaxSFX);
+
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
     }

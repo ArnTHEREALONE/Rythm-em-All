@@ -15,8 +15,18 @@ public class MainMenuUI : MonoBehaviour
     public Button mapSelectBackButton;
     public Button optionsBackButton;
 
+    [Header("=== FMOD Music ===")]
+    public FMODUnity.EventReference mainMenuMusic;
+    private FMOD.Studio.EventInstance musicInstance;
+
     private void Start()
     {
+        if (!mainMenuMusic.IsNull)
+        {
+            musicInstance = FMODUnity.RuntimeManager.CreateInstance(mainMenuMusic);
+            musicInstance.start();
+        }
+
         if (playButton != null)
             playButton.onClick.AddListener(OnPlayClicked);
         if (editorButton != null)
@@ -81,5 +91,14 @@ public class MainMenuUI : MonoBehaviour
         if (mainPanel != null) mainPanel.SetActive(true);
         if (mapSelectPanel != null) mapSelectPanel.SetActive(false);
         if (optionsPanel != null) optionsPanel.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (musicInstance.isValid())
+        {
+            musicInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            musicInstance.release();
+        }
     }
 }

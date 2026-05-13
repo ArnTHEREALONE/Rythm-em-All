@@ -245,8 +245,20 @@ public class BeatMapEditor : MonoBehaviour
     {
         if (currentMap == null) return;
 
+        float snappedBeat = Mathf.Round(currentBeat);
+        DeleteNoteAt(snappedBeat, selectedLane);
+    }
+
+    /// <summary>
+    /// Supprime une note à une position spécifique.
+    /// </summary>
+    public void DeleteNoteAt(float beat, int lane)
+    {
+        if (currentMap == null) return;
+
+        float snappedBeat = Mathf.Round(beat);
         BeatNote note = currentMap.notes.Find(n =>
-            Mathf.Approximately(n.beatTime, currentBeat) && n.spawnerIndex == selectedLane);
+            Mathf.Approximately(n.beatTime, snappedBeat) && n.spawnerIndex == lane);
 
         if (note != null)
         {

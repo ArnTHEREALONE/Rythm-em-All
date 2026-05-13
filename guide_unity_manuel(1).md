@@ -357,6 +357,7 @@ Dans l'Inspector, section `PlayerCombat` :
 
 | Champ | Event FMOD |
 |---|---|
+| `attackSFX` | (Le son au déclenchement de l'attaque) |
 | `sfxPerfect` | `event:/SFX/HitPerfect` |
 | `sfxGood` | `event:/SFX/HitGood` |
 | `sfxMiss` | `event:/SFX/HitMiss` |
@@ -380,6 +381,15 @@ Dans l'Inspector, section `PlayerCombat` :
 | `Flash Color` | `#CC0000` (rouge foncé) — flash quand le joueur frappe hors timing |
 | `Flash Duration` | `0.3` |
 
+**SFX FMOD** :
+
+| Champ | Event FMOD |
+|---|---|
+| `healOnKillSFX` | Son quand le joueur se soigne après un kill |
+| `passiveHealSFX` | Son du soin passif |
+| `healMaxSFX` | Son quand la barre de vie atteint son maximum |
+| `damageSFX` | Son de dégât subi par le joueur |
+
 #### 5.5.4 Configurer PlayerController
 
 | Champ | Glisser |
@@ -389,6 +399,17 @@ Dans l'Inspector, section `PlayerCombat` :
 | `Combat` | Se remplit automatiquement |
 | `Dash` | Se remplit automatiquement |
 | `Health` | Se remplit automatiquement |
+
+---
+
+### 5.5.5 Configurer les EnemyData (Scriptable Objects)
+
+Ouvrir chaque fichier d'ennemi dans `Assets/Scriptable Objects/` (`Enemy_Simple`, `Enemy_Left`, etc.) et configurer la section **SFX (FMOD)** :
+
+| Champ | Event FMOD |
+|---|---|
+| `deathByPlayerSFX` | Son joué quand l'ennemi est tué par le joueur |
+| `deathNaturalSFX` | Son joué quand l'ennemi s'auto-détruit (explosion) |
 
 ---
 
@@ -433,11 +454,12 @@ Créer ces GameObjects vides (`GameObject > Create Empty`) et attacher les scrip
 | `Warning Ahead Beats` | `6` (doit être > Look Ahead pour que le warning apparaisse AVANT l'ennemi) |
 | `Wave Gap Seconds` | `5` (Nouveau) |
 | `Player Health` | Glisser le `Player` (se remplit automatiquement au lancement si vide) |
+| `Wave Warning SFX` | Event FMOD (Son à l'apparition des warnings) |
 
 > [!TIP]
 > **Le Système de Vagues (Waves)**
 > `EnemySpawnManager` regroupe automatiquement les notes en "vagues". Si deux notes sont séparées par plus de `Wave Gap Seconds` (ex: 5 secondes), elles sont considérées comme deux vagues distinctes.
-> **Comportement des warnings** : Au lieu d'apparaître pour chaque ennemi individuellement, les warnings s'affichent simultanément **au début de chaque vague**, sur TOUS les spawners qui seront utilisés pendant cette vague.
+> **Comportement des warnings** : Au lieu d'apparaître pour chaque ennemi individuellement, les warnings s'affichent simultanément **au début de chaque vague**, sur TOUS les spawners qui seront utilisés pendant cette vague. Un son FMOD (`Wave Warning SFX`) est joué à ce moment-là.
 
 #### 5.6.3 Configurer TimingFeedbackUI
 
@@ -595,9 +617,15 @@ Pour chaque bouton, suivre cette procédure exacte :
 | `PlayButton` | `PLAY` | `-250` | `300` | `60` |
 | `EditorButton` | `EDITOR` | `-330` | `300` | `60` |
 | `OptionsButton` | `OPTIONS` | `-410` | `300` | `60` |
-| `QuitButton` | `QUIT` | `-490` | `300` | `60` |
-
 Pour chaque bouton :
+1. Dans l'Inspector, `Add Component` → taper `UIFmodFeedback` → le sélectionner.
+2. Glisser l'Event FMOD `Hover` dans le champ `Hover SFX`.
+3. Glisser l'Event FMOD `Click` dans le champ `Click SFX`.
+
+#### Attacher MainMenuUI :
+1. Sur le `MainMenuCanvas`, `Add Component` → `MainMenuUI`.
+2. Lier les boutons correspondants.
+3. Glisser l'Event de musique du menu principal (ex: `event:/Music/MainMenu`) dans le champ `Main Menu Music` du composant `MainMenuUI`.
 - **RectTransform** : Anchor = `Top-Center`, Pos X = `0`, Width et Height selon tableau
 - Déplier le bouton dans la Hierarchy (cliquer la flèche `▶`) → cliquer sur l'enfant `Text (TMP)` → changer le texte selon le tableau, Font Size = `28`
 

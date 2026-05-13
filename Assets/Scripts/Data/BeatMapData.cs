@@ -60,6 +60,15 @@ public class BeatMapData
     
     public static BeatMapData FromJson(string json)
     {
-        return JsonUtility.FromJson<BeatMapData>(json);
+        BeatMapData map = JsonUtility.FromJson<BeatMapData>(json);
+        
+        // Migration automatique des anciennes maps qui n'avaient pas de mapName
+        if (map != null && string.IsNullOrEmpty(map.mapName) && !string.IsNullOrEmpty(map.songName))
+        {
+            map.mapName = map.songName;
+            map.songName = ""; // On pourra le recréer proprement via FMOD s'il le faut
+        }
+
+        return map;
     }
 }

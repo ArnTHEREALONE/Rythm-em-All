@@ -236,8 +236,14 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         RectTransformUtility.ScreenPointToLocalPointInRectangle(gridArea, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
         var (lane, beat) = ScreenToGrid(localPoint);
 
-        
-        BeatMapEditor.Instance.PlaceNoteAt(beat, lane, EnemyInputType.Any);
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            BeatMapEditor.Instance.DeleteNoteAt(beat, lane);
+        }
+        else if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            BeatMapEditor.Instance.PlaceNoteAt(beat, lane, EnemyInputType.Any);
+        }
     }
 
     private void UpdateCursor(float currentBeat, float startBeat, float endBeat)

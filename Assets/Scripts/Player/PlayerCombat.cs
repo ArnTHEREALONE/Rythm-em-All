@@ -34,6 +34,7 @@ public class PlayerCombat : MonoBehaviour
     public Color rangeCircleColor = new Color(1f, 0f, 0f, 0.3f);
 
     [Header("=== SFX (FMOD Events) ===")]
+    public EventReference attackSFX;
     public EventReference sfxPerfect;
     public EventReference sfxGood;
     public EventReference sfxMiss;
@@ -97,6 +98,7 @@ public class PlayerCombat : MonoBehaviour
     {
         
         FlashPlayer();
+        PlaySFX(attackSFX);
 
         if (EnemySpawnManager.Instance == null) return;
 

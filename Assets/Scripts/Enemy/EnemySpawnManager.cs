@@ -53,6 +53,10 @@ public class EnemySpawnManager : MonoBehaviour
     [Tooltip("Glisser le PlayerHealth ici pour les dégâts d'explosion")]
     public PlayerHealth playerHealth;
 
+    [Header("=== SFX (FMOD) ===")]
+    [Tooltip("Son joué à l'apparition des warnings d'une nouvelle vague")]
+    public FMODUnity.EventReference waveWarningSFX;
+
     [Header("=== État (debug) ===")]
     [SerializeField] private int nextNoteIndex;
     [SerializeField] private int nextWaveWarningIndex;
@@ -228,6 +232,11 @@ public class EnemySpawnManager : MonoBehaviour
 
                         spawners[spawnerIdx].ShowWarning(warningColor, warningDuration);
                     }
+                }
+
+                if (!waveWarningSFX.IsNull && FMODAudioManager.Instance != null)
+                {
+                    FMODAudioManager.Instance.PlaySFX(waveWarningSFX);
                 }
 
                 Debug.Log($"EnemySpawnManager: ⚠ Warning vague {wave.waveIndex + 1} ! " +
