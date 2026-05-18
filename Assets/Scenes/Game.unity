@@ -998,7 +998,7 @@ MonoBehaviour:
   player: {fileID: 1764813728}
   musicDatabase: {fileID: 11400000, guid: 0dbe16a0529b4ac4ca35de2d32b635bb, type: 2}
   currentState: 0
-  startDelay: 3
+  startDelay: 0
 --- !u!4 &362284185
 Transform:
   m_ObjectHideFlags: 0
@@ -1655,10 +1655,20 @@ MonoBehaviour:
   enemyDataBoth: {fileID: 0}
   enemyDataSpam: {fileID: 0}
   lookAheadBeats: 10
+  waveGapSeconds: 5
   warningAheadBeats: 3
+  playerHealth: {fileID: 0}
+  waveWarningSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
   nextNoteIndex: 0
-  nextWarningIndex: 0
+  nextWaveWarningIndex: 0
   activeEnemyCount: 0
+  totalWaves: 0
 --- !u!4 &727674353
 Transform:
   m_ObjectHideFlags: 0
@@ -5279,8 +5289,28 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 302605378}
     - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: damageSFX.Path
+      value: event:/SFX/Dmg sfx
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: passiveHealRate
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: damageSFX.Guid.Data1
+      value: 1331787454
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: damageSFX.Guid.Data2
+      value: 1183244355
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: damageSFX.Guid.Data3
+      value: 1321876650
+      objectReference: {fileID: 0}
+    - target: {fileID: 1341365103947229477, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: damageSFX.Guid.Data4
+      value: -1998453944
       objectReference: {fileID: 0}
     - target: {fileID: 5107898816876568930, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: m_Name

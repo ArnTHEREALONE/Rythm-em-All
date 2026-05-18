@@ -261,9 +261,9 @@ public class EnemyBase : MonoBehaviour
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
 
-        if (data != null && !data.deathByPlayerSFX.IsNull && FMODUnity.FMODAudioManager.Instance != null)
+        if (data != null && !data.deathByPlayerSFX.IsNull && FMODAudioManager.Instance != null)
         {
-            FMODUnity.FMODAudioManager.Instance.PlaySFX(data.deathByPlayerSFX);
+            FMODAudioManager.Instance.PlaySFX(data.deathByPlayerSFX);
         }
 
         OnEnemyKilled?.Invoke(this, result);
@@ -277,9 +277,9 @@ public class EnemyBase : MonoBehaviour
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
 
-        if (data != null && !data.deathNaturalSFX.IsNull && FMODUnity.FMODAudioManager.Instance != null)
+        if (data != null && !data.deathNaturalSFX.IsNull && FMODAudioManager.Instance != null)
         {
-            FMODUnity.FMODAudioManager.Instance.PlaySFX(data.deathNaturalSFX);
+            FMODAudioManager.Instance.PlaySFX(data.deathNaturalSFX);
         }
 
         OnEnemyExploded?.Invoke(this);
