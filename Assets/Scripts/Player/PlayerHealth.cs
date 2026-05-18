@@ -36,6 +36,9 @@ public class PlayerHealth : MonoBehaviour
 
     public event Action<float, float> OnHPChanged;
     public event Action OnDeath;
+    public event Action<int> OnDamageTaken;
+    public event Action OnHealActive;
+    public event Action OnHPFull;
 
     public float CurrentHP => currentHP;
     public float HPRatio => maxHP > 0 ? currentHP / maxHP : 0f;
@@ -156,7 +159,7 @@ public class PlayerHealth : MonoBehaviour
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();
 
-        
+        OnDamageTaken?.Invoke(amount);
         FlashSliderRed();
     }
 
@@ -170,8 +173,12 @@ public class PlayerHealth : MonoBehaviour
         if (!healOnKillSFX.IsNull && FMODAudioManager.Instance != null)
             FMODAudioManager.Instance.PlaySFX(healOnKillSFX);
 
-        if (wasNotMax && currentHP >= maxHP && !healMaxSFX.IsNull && FMODAudioManager.Instance != null)
+        bool isNowFull = wasNotMax && currentHP >= maxHP;
+        if (isNowFull && !healMaxSFX.IsNull && FMODAudioManager.Instance != null)
             FMODAudioManager.Instance.PlaySFX(healMaxSFX);
+
+        OnHealActive?.Invoke();
+        if (isNowFull) OnHPFull?.Invoke();
 
         OnHPChanged?.Invoke(currentHP, maxHP);
         UpdateUI();

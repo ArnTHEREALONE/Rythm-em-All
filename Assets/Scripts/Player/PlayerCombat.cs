@@ -52,6 +52,8 @@ public class PlayerCombat : MonoBehaviour
     private Coroutine flashCoroutine;
     private LineRenderer rangeLineRenderer;
 
+    public event Action OnAttackPerformed;
+
     private void Start()
     {
         playerHealth = GetComponent<PlayerHealth>();
@@ -99,6 +101,7 @@ public class PlayerCombat : MonoBehaviour
         
         FlashPlayer();
         PlaySFX(attackSFX);
+        OnAttackPerformed?.Invoke();
 
         if (EnemySpawnManager.Instance == null) return;
 
