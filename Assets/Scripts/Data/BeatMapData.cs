@@ -26,6 +26,9 @@ public class BeatMapData
     [Tooltip("Liste de toutes les notes/events de la beatmap")]
     public List<BeatNote> notes = new List<BeatNote>();
 
+    [Tooltip("Beat de fin explicite de la map (-1 = pas défini, la victoire est déclenchée par la fin de la musique FMOD)")]
+    public float endBeat = -1f;
+
     
     
     

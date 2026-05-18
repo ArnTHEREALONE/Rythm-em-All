@@ -32,9 +32,15 @@ public class EditorControls : MonoBehaviour
     [Header("=== Métronome ===")]
     public Toggle metronomeToggle;
 
-    [Header("=== Retour Menu ===")]
-    [Tooltip("Bouton en haut à gauche pour revenir au menu principal")]
-    public Button backToMenuButton;
+    [Header("=== Marqueur de Fin ===")]
+    [Tooltip("Bouton pour placer la fin de la map au beat actuel")]
+    public Button setEndBeatButton;
+
+    [Tooltip("Bouton pour effacer le marqueur de fin")]
+    public Button clearEndBeatButton;
+
+    [Tooltip("Texte affiché sur le bouton pour indiquer si un end beat est défini")]
+    public TextMeshProUGUI endBeatStatusText;
 
     private void Start()
     {
@@ -61,6 +67,12 @@ public class EditorControls : MonoBehaviour
         {
             backToMenuButton.onClick.AddListener(OnBackToMenu);
         }
+
+        // Marqueur de fin
+        if (setEndBeatButton != null)
+            setEndBeatButton.onClick.AddListener(() => BeatMapEditor.Instance?.SetEndBeatAtCursor());
+        if (clearEndBeatButton != null)
+            clearEndBeatButton.onClick.AddListener(() => BeatMapEditor.Instance?.ClearEndBeat());
     }
 
     private void Update()
@@ -96,6 +108,15 @@ public class EditorControls : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
             BeatMapEditor.Instance.DeleteNoteAtCursor();
 
+        // E = poser/effacer le marqueur de fin
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (BeatMapEditor.Instance.HasEndBeat)
+                BeatMapEditor.Instance.ClearEndBeat();
+            else
+                BeatMapEditor.Instance.SetEndBeatAtCursor();
+        }
+
         
         if (Input.GetKeyDown(KeyCode.P))
             OnPlayPause();
@@ -103,6 +124,15 @@ public class EditorControls : MonoBehaviour
         
         if (playPauseText != null)
             playPauseText.text = BeatMapEditor.Instance.IsPlaying ? "⏸" : "▶";
+
+        // Afficher le statut du marqueur de fin
+        if (endBeatStatusText != null)
+        {
+            if (BeatMapEditor.Instance.HasEndBeat)
+                endBeatStatusText.text = $"Fin: beat {Mathf.RoundToInt(BeatMapEditor.Instance.EndBeat)}";
+            else
+                endBeatStatusText.text = "Fin: non définie";
+        }
     }
 
     private void OnPlayPause()

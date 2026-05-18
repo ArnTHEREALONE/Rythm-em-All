@@ -232,11 +232,14 @@ public class MapSelectUI : MonoBehaviour
     
     
     
-    private int LoadHighScore(string mapName)
+    public static int GetHighScore(string mapName)
     {
+        if (string.IsNullOrEmpty(mapName)) return 0;
         string key = $"HighScore_{mapName.Replace(" ", "_")}";
         return PlayerPrefs.GetInt(key, 0);
     }
+
+    private int LoadHighScore(string mapName) => GetHighScore(mapName);
 
     
     

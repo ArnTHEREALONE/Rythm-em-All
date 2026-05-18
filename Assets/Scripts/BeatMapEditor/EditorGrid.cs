@@ -34,6 +34,9 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
     public Color colorStrongBeatLine = new Color(1f, 1f, 1f, 0.35f);
     public Color colorLaneLine = new Color(1f, 1f, 1f, 0.08f);
 
+    [Tooltip("Couleur de la ligne de fin de map")]
+    public Color colorEndMarker = new Color(1f, 0.2f, 0.2f, 0.9f);
+
     [Header("=== Note Visuel ===")]
     [Tooltip("Diamètre du rond de note en pixels")]
     public float noteDiameter = 28f;
@@ -41,6 +44,7 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
     private List<GameObject> noteVisuals = new List<GameObject>();
     private List<GameObject> gridLines = new List<GameObject>();
     private GameObject cursorVisual;
+    private GameObject endMarkerVisual;
 
     
     private BeatNote draggedNote;
@@ -66,6 +70,7 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         float endBeat = currentBeat + visibleBeats * 3f / 4f;
 
         DrawGridLines(startBeat, endBeat);
+        DrawEndMarker(startBeat, endBeat);
 
         foreach (var note in map.notes)
         {
@@ -142,6 +147,42 @@ public class EditorGrid : MonoBehaviour, IPointerClickHandler
         rect.localRotation = Quaternion.Euler(0f, 0f, angle);
 
         gridLines.Add(lineGO);
+    }
+
+    private void DrawEndMarker(float startBeat, float endBeat)
+    {
+        if (gridArea == null || BeatMapEditor.Instance == null) return;
+        if (!BeatMapEditor.Instance.HasEndBeat) return;
+
+        float markerBeat = BeatMapEditor.Instance.EndBeat;
+        if (markerBeat < startBeat || markerBeat > endBeat) return;
+
+        float gridWidth = gridArea.rect.width;
+        float gridHeight = gridArea.rect.height;
+        float beatRange = endBeat - startBeat;
+        float normalizedBeat = (markerBeat - startBeat) / beatRange;
+        float y = (normalizedBeat - 0.5f) * gridHeight;
+
+        // Ligne rouge épaisse
+        CreateLine(
+            new Vector2(-gridWidth / 2f, y),
+            new Vector2(gridWidth / 2f, y),
+            colorEndMarker, 3f
+        );
+
+        // Label "FIN – beat XX"
+        GameObject labelGO = new GameObject("EndMarkerLabel");
+        labelGO.transform.SetParent(gridArea, false);
+        var tmp = labelGO.AddComponent<TMPro.TextMeshProUGUI>();
+        tmp.text = $"⏹ FIN – beat {Mathf.RoundToInt(markerBeat)}";
+        tmp.fontSize = 14;
+        tmp.color = colorEndMarker;
+        tmp.fontStyle = TMPro.FontStyles.Bold;
+        tmp.raycastTarget = false;
+        var lRect = labelGO.GetComponent<RectTransform>();
+        lRect.anchoredPosition = new Vector2(-gridWidth / 2f + 8f, y + 8f);
+        lRect.sizeDelta = new Vector2(200f, 20f);
+        gridLines.Add(labelGO);
     }
 
     private void CreateNoteVisual(BeatNote note, float startBeat, float endBeat)

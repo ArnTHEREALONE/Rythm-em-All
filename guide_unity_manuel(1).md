@@ -1503,4 +1503,161 @@ Pour chaque musique :
 [ ] Canvas UI pour chaque scène
 [ ] FMODAudioManager GO dans chaque scène (ou DontDestroyOnLoad)
 [ ] Références croisées assignées dans les Inspectors
+[ ] Décompte : countdownText ajouté au Canvas + SFX FMOD assignés sur GameManager
+[ ] Panneau Victoire créé dans le Canvas Game
+[ ] Panneau Défaite créé dans le Canvas Game
+[ ] Boutons "Fin ici" / "Supprimer la fin" ajoutés à l'UI de l'éditeur
 ```
+
+---
+
+## 13 — Décompte 3-2-1-Go!
+
+Le décompte démarre **dès que la scène Game est chargée**, pendant la durée du `Song Offset` de la beatmap. La musique se lance immédiatement, le décompte s'affiche pendant la silence initiale, et "Go!" coïncide avec le début des notes.
+
+### 13.1 Créer le texte de décompte (Canvas Game)
+
+1. Dans la scène **Game**, sélectionner `GameCanvas`
+2. Clic droit → `UI > Text - TextMeshPro` → renommer `CountdownText`
+3. Configurer le **RectTransform** :
+   - Anchor : `Center`
+   - Pos : `(0, 0)`
+   - Width : `400`, Height : `200`
+4. Configurer **TextMeshPro** :
+   - Font Size : `120`
+   - Alignment : `Center`
+   - Bold : ✅
+   - Color : `blanc`
+5. Dans l'Inspector du `GameUI`, glisser `CountdownText` dans le champ `Countdown Text`
+6. Désactiver l'objet `CountdownText` dans la Hierarchy (décocher la checkbox) — il sera activé automatiquement par le script
+
+### 13.2 Configurer GameManager (SFX du décompte)
+
+Sur le GameObject **GameManager** → composant `GameManager` :
+
+| Champ Inspector | Valeur |
+|---|---|
+| `Countdown Tick SFX` | Event FMOD du son de tick (3, 2, 1) |
+| `Countdown Go SFX` | Event FMOD du son "Go!" |
+| `End Screen Music Volume` | `0.2` (volume de la musique sur les écrans de fin) |
+
+### 13.3 Créer les events FMOD
+
+Dans FMOD Studio, créer dans le dossier `SFX` :
+- `event:/SFX/CountdownTick` — son court et sec (type "blip" ou "beep")
+- `event:/SFX/CountdownGo` — son plus impactant ou musical (type "whoosh" ou stinger)
+
+> [!TIP]
+> Le nombre de ticks affichés s'adapte automatiquement à la durée du `songOffset`. Si ton offset est de 4 secondes, chaque tick dure 1 seconde. Si c'est 8 secondes, chaque tick dure 2 secondes.
+
+---
+
+## 14 — Panneaux Victoire et Défaite
+
+### 14.1 Panneau Victoire
+
+> [!IMPORTANT]
+> Ce panneau doit être désactivé par défaut dans la Hierarchy. Le script `GameUI` l'activera automatiquement à la fin de la map.
+
+1. Clic droit sur `GameCanvas` → `UI > Panel` → renommer `VictoryPanel`
+2. **Désactiver** l'objet dans la Hierarchy
+3. Ajouter un fond semi-transparent (Image couleur `#000000AA`)
+4. Créer la hiérarchie suivante :
+
+```
+VictoryPanel
+├── TitleText (Text-TMP) — "VICTOIRE !" — Font 72, Bold, doré #FFD700
+├── ScoreText (Text-TMP) — "Score\n0" — Font 48
+├── BestComboText (Text-TMP) — "Best Combo: 0x" — Font 28
+├── HighscoreText (Text-TMP) — "🏆 Nouveau Record !" — Font 32, jaune
+├── RestartButton (Button-TMP) — "Rejouer"
+└── MenuButton (Button-TMP) — "Menu Principal"
+```
+
+5. Dans l'Inspector du **GameUI**, lier les champs :
+
+| Champ Inspector | GameObject à glisser |
+|---|---|
+| `Victory Panel` | `VictoryPanel` |
+| `Victory Score Text` | `VictoryPanel > ScoreText` |
+| `Victory Best Combo Text` | `VictoryPanel > BestComboText` |
+| `Victory Highscore Text` | `VictoryPanel > HighscoreText` |
+| `Victory Restart Button` | `VictoryPanel > RestartButton` |
+| `Victory Menu Button` | `VictoryPanel > MenuButton` |
+
+### 14.2 Panneau Défaite
+
+1. Clic droit sur `GameCanvas` → `UI > Panel` → renommer `GameOverPanel`
+2. **Désactiver** l'objet dans la Hierarchy
+3. Même fond semi-transparent `#000000AA` mais teinte rouge
+4. Créer la hiérarchie suivante :
+
+```
+GameOverPanel
+├── TitleText (Text-TMP) — "DÉFAITE" — Font 72, Bold, rouge #FF4444
+├── ScoreText (Text-TMP) — "Score\n0" — Font 48
+├── BestComboText (Text-TMP) — "Best Combo: 0x" — Font 28
+├── RestartButton (Button-TMP) — "Recommencer"
+└── MenuButton (Button-TMP) — "Menu Principal"
+```
+
+5. Dans l'Inspector du **GameUI**, lier les champs :
+
+| Champ Inspector | GameObject à glisser |
+|---|---|
+| `Game Over Panel` | `GameOverPanel` |
+| `Game Over Score Text` | `GameOverPanel > ScoreText` |
+| `Game Over Best Combo Text` | `GameOverPanel > BestComboText` |
+| `Game Over Restart Button` | `GameOverPanel > RestartButton` |
+| `Game Over Menu Button` | `GameOverPanel > MenuButton` |
+
+### 14.3 Comportement
+
+- **Victoire** : La musique est abaissée à 20% (configurable dans `End Screen Music Volume` sur `GameManager`). Le score final s'affiche. Si c'est un nouveau record, "🏆 Nouveau Record !" apparaît.
+- **Défaite** : Même comportement (musique abaissée). Le score atteint avant la mort s'affiche.
+- Le HighScore est sauvegardé automatiquement via `PlayerPrefs` et affiché dans le panneau de sélection des maps.
+
+---
+
+## 15 — Marqueur de Fin dans l'Éditeur
+
+Le marqueur de fin permet de définir **précisément le beat auquel la victoire est déclenchée** en jeu, indépendamment de la durée de la musique FMOD.
+
+### 15.1 Ajouter les boutons dans l'UI de l'éditeur
+
+1. Dans la scène **Editor**, trouver le panneau de contrôle (là où se trouvent les boutons Play, Beat±)
+2. Ajouter deux boutons :
+   - `SetEndBeatButton` — texte : `⏹ Fin ici`
+   - `ClearEndBeatButton` — texte : `✕ Supprimer fin`
+3. Ajouter un `Text-TMP` nommé `EndBeatStatusText` (affichera "Fin: beat 64" ou "Fin: non définie")
+
+4. Dans l'Inspector du composant **EditorControls**, lier :
+
+| Champ Inspector | GameObject à glisser |
+|---|---|
+| `Set End Beat Button` | `SetEndBeatButton` |
+| `Clear End Beat Button` | `ClearEndBeatButton` |
+| `End Beat Status Text` | `EndBeatStatusText` |
+
+### 15.2 Utiliser le marqueur
+
+| Action | Résultat |
+|---|---|
+| Clic sur **"⏹ Fin ici"** | Place le marqueur de fin au beat actuel (snappé) |
+| Clic sur **"✕ Supprimer fin"** | Supprime le marqueur (la fin sera déclenchée par la musique) |
+| Touche **`E`** (raccourci) | Toggle : pose ou supprime le marqueur |
+| Sauvegarder la map | Le marqueur est inclus dans le fichier JSON (`endBeat`) |
+
+### 15.3 Affichage dans l'éditeur
+
+Quand le marqueur est défini, une **ligne rouge horizontale épaisse** apparaît sur la grille à la position du beat de fin, avec le label **"⏹ FIN – beat XX"** affiché en rouge.
+
+### 15.4 Comportement en jeu
+
+- Si `endBeat > 0` : la victoire est déclenchée dès que le `BeatManager.CurrentBeat` atteint ce beat.
+- Si `endBeat == -1` (défaut) : la victoire est déclenchée à la fin de la musique FMOD (comportement précédent).
+- Dans les deux cas, la musique est abaissée à 20% (non arrêtée) sur l'écran de victoire.
+
+> [!NOTE]
+> **Conseil de création de map** : Place le marqueur de fin 2 à 4 beats après la dernière note pour laisser le temps au joueur de voir le dernier ennemi se détruire avant l'écran de victoire.
+

@@ -386,4 +386,46 @@ public class BeatMapEditor : MonoBehaviour
         FMODAudioManager.Instance?.StopMusic();
         SceneManager.LoadScene("MainMenu");
     }
+
+    /// <summary>
+    /// Pose le marqueur de fin au beat actuel (snappé).
+    /// </summary>
+    public void SetEndBeatAtCursor()
+    {
+        if (currentMap == null) return;
+        float snapped = Mathf.Round(currentBeat);
+        currentMap.endBeat = snapped;
+        Debug.Log($"BeatMapEditor: EndBeat posé au beat {snapped}");
+        RefreshUI();
+    }
+
+    /// <summary>
+    /// Pose le marqueur de fin à un beat précis.
+    /// </summary>
+    public void SetEndBeat(float beat)
+    {
+        if (currentMap == null) return;
+        currentMap.endBeat = beat;
+        RefreshUI();
+    }
+
+    /// <summary>
+    /// Supprime le marqueur de fin (comportement par défaut : fin via FMOD).
+    /// </summary>
+    public void ClearEndBeat()
+    {
+        if (currentMap == null) return;
+        currentMap.endBeat = -1f;
+        RefreshUI();
+    }
+
+    /// <summary>
+    /// Retourne vrai si un marqueur de fin est défini.
+    /// </summary>
+    public bool HasEndBeat => currentMap != null && currentMap.endBeat > 0f;
+
+    /// <summary>
+    /// Beat de fin actuel (-1 si non défini).
+    /// </summary>
+    public float EndBeat => currentMap?.endBeat ?? -1f;
 }
