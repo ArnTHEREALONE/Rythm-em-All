@@ -42,6 +42,10 @@ public class EditorControls : MonoBehaviour
     [Tooltip("Texte affiché sur le bouton pour indiquer si un end beat est défini")]
     public TextMeshProUGUI endBeatStatusText;
 
+    [Header("=== Navigation ===")]
+    [Tooltip("Bouton pour revenir au menu principal")]
+    public Button backToMenuButton;
+
     private void Start()
     {
         
