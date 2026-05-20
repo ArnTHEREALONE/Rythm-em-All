@@ -13,6 +13,19 @@ MonoBehaviour:
   m_Name: MusicDatabase
   m_EditorClassIdentifier: Assembly-CSharp::MusicDatabase
   entries:
+  - displayName: Infraction
+    fmodEventPath: 
+    fmodEvent:
+      Guid:
+        Data1: 1172437143
+        Data2: 1075828063
+        Data3: -54833520
+        Data4: -1444498796
+      Path: event:/Music/Energetic Anime EDM by OddVision, Infraction [No Copyright
+        Music]  Superstar
+    bpm: 252
+    songOffset: 0
+    coverArt: {fileID: 21300000, guid: a88c6534a2185344994859e251b8c306, type: 3}
   - displayName: Through the Fire and Flames
     fmodEventPath: 
     fmodEvent:

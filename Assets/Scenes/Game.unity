@@ -1668,7 +1668,7 @@ MonoBehaviour:
   enemyDataRight: {fileID: 0}
   enemyDataBoth: {fileID: 0}
   enemyDataSpam: {fileID: 0}
-  lookAheadBeats: 10
+  lookAheadBeats: 5
   waveGapSeconds: 5
   warningAheadBeats: 3
   playerHealth: {fileID: 0}
@@ -5419,6 +5419,26 @@ PrefabInstance:
     - target: {fileID: 7230475088236558089, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8898181989481095386, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: dashSFX.Path
+      value: event:/SFX/576585__nezuai__cartoon-zip-1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8898181989481095386, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: dashSFX.Guid.Data1
+      value: -1806167570
+      objectReference: {fileID: 0}
+    - target: {fileID: 8898181989481095386, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: dashSFX.Guid.Data2
+      value: 1269793232
+      objectReference: {fileID: 0}
+    - target: {fileID: 8898181989481095386, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: dashSFX.Guid.Data3
+      value: 2068164773
+      objectReference: {fileID: 0}
+    - target: {fileID: 8898181989481095386, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+      propertyPath: dashSFX.Guid.Data4
+      value: 1689961827
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1354173145331904704, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}

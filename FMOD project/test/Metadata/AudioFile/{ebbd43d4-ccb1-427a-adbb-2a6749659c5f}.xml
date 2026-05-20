@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{ebbd43d4-ccb1-427a-adbb-2a6749659c5f}">
+		<property name="assetPath">
+			<value>Energetic Anime EDM by OddVision, Infraction [No Copyright Music]  Superstar.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>115.09551020408163</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{59d0a401-e5a1-4796-a52e-837d7b79cf92}</destination>
+		</relationship>
+	</object>
+</objects>
