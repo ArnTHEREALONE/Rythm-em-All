@@ -602,6 +602,7 @@ GameObject:
   m_Component:
   - component: {fileID: 278372451}
   - component: {fileID: 278372452}
+  - component: {fileID: 278372453}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -683,6 +684,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &278372453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 278372450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &287188497
 GameObject:
   m_ObjectHideFlags: 0
@@ -1708,6 +1725,7 @@ GameObject:
   m_Component:
   - component: {fileID: 776989318}
   - component: {fileID: 776989319}
+  - component: {fileID: 776989320}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -1789,6 +1807,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &776989320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776989317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &791145360
 GameObject:
   m_ObjectHideFlags: 0
@@ -2671,6 +2705,7 @@ GameObject:
   m_Component:
   - component: {fileID: 977692245}
   - component: {fileID: 977692246}
+  - component: {fileID: 977692247}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -2752,6 +2787,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &977692247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977692244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &981167292
 GameObject:
   m_ObjectHideFlags: 0
@@ -2845,6 +2896,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1003864980}
   - component: {fileID: 1003864981}
+  - component: {fileID: 1003864982}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -2926,6 +2978,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1003864982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003864979}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &1035290696
 GameObject:
   m_ObjectHideFlags: 0
@@ -3193,6 +3261,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1161701416}
   - component: {fileID: 1161701417}
+  - component: {fileID: 1161701418}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -3274,6 +3343,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1161701418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161701415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &1188249832
 GameObject:
   m_ObjectHideFlags: 0
@@ -3565,6 +3650,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1311473155}
   - component: {fileID: 1311473156}
+  - component: {fileID: 1311473157}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -3646,6 +3732,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1311473157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1311473154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &1366835801
 GameObject:
   m_ObjectHideFlags: 0
@@ -4394,6 +4496,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1623517727 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 7633341133224399052, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
+  m_PrefabInstance: {fileID: 2057694474}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1747568078
 GameObject:
   m_ObjectHideFlags: 0
@@ -4438,6 +4545,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1763167820}
   - component: {fileID: 1763167821}
+  - component: {fileID: 1763167822}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -4519,6 +4627,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1763167822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763167819}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!114 &1764813728 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1768092692070481748, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
@@ -4569,7 +4693,7 @@ MonoBehaviour:
   combat: {fileID: 0}
   health: {fileID: 0}
   movement: {fileID: 0}
-  playerRenderer: {fileID: 0}
+  playerRenderer: {fileID: 1623517727}
   dashFlashColor: {r: 1, g: 1, b: 1, a: 1}
   dashFlashDuration: 0.03
   trailStartColor: {r: 0.62184054, g: 0.9065584, b: 0.9622642, a: 0.8}
@@ -4740,6 +4864,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1834198409}
   - component: {fileID: 1834198410}
+  - component: {fileID: 1834198411}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -4821,6 +4946,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1834198411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834198408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &1838226558
 GameObject:
   m_ObjectHideFlags: 0
@@ -5089,6 +5230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1941564033}
   - component: {fileID: 1941564034}
+  - component: {fileID: 1941564035}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -5170,6 +5312,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1941564035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941564032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &2007780000
 GameObject:
   m_ObjectHideFlags: 0
@@ -5259,6 +5417,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2009450677}
   - component: {fileID: 2009450678}
+  - component: {fileID: 2009450679}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -5340,6 +5499,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2009450679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009450676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1001 &2057694474
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5462,6 +5637,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2115905867}
   - component: {fileID: 2115905868}
+  - component: {fileID: 2115905869}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -5543,6 +5719,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2115905869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2115905866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 2115905868}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &2134547483
 GameObject:
   m_ObjectHideFlags: 0
@@ -5553,6 +5745,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2134547484}
   - component: {fileID: 2134547485}
+  - component: {fileID: 2134547486}
   m_Layer: 0
   m_Name: Warning sprite
   m_TagString: Untagged
@@ -5634,6 +5827,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2134547486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2134547483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba791f618bd23b844bca28dc6d1f5344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WarningIndicator
+  spriteRenderer: {fileID: 278372452}
+  blinkRate: 3
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
