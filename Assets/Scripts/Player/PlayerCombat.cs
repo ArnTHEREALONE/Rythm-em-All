@@ -3,14 +3,10 @@ using FMODUnity;
 using System.Collections;
 using System;
 
-
-
-
-
-
-
-
-
+/// <summary>
+/// Gère le combat du joueur : attaques gauche/droite, timing, SFX.
+/// Le flash visuel et le cercle de range sont maintenant gérés par PlayerVFX.
+/// </summary>
 public class PlayerCombat : MonoBehaviour
 {
     [Header("=== Configuration ===")]
@@ -19,20 +15,6 @@ public class PlayerCombat : MonoBehaviour
 
     [Tooltip("Délai maximum entre les 2 inputs pour un 'Both' hit (secondes)")]
     public float bothInputWindow = 0.1f;
-
-    [Header("=== Flash Visuel ===")]
-    [Tooltip("Couleur du flash quand le joueur attaque")]
-    public Color attackFlashColor = new Color(1f, 0.3f, 0.3f, 1f);
-
-    [Tooltip("Durée du flash en secondes")]
-    public float attackFlashDuration = 0.08f;
-
-    [Header("=== Range Visuel (Scene) ===")]
-    [Tooltip("Afficher le cercle de range dans le jeu (via LineRenderer)")]
-    public bool showRangeInGame = false;
-
-    [Tooltip("Couleur du cercle de range")]
-    public Color rangeCircleColor = new Color(1f, 0f, 0f, 0.3f);
 
     [Header("=== SFX (FMOD Events) ===")]
     public EventReference attackSFX;
@@ -48,29 +30,16 @@ public class PlayerCombat : MonoBehaviour
 
     private PlayerHealth playerHealth;
     private PlayerConfig playerConfig;
-    private Renderer playerRenderer;
-    private Color playerOriginalColor;
-    private Coroutine flashCoroutine;
-    private LineRenderer rangeLineRenderer;
 
     public event Action OnAttackPerformed;
 
     private void Start()
     {
         playerHealth = GetComponent<PlayerHealth>();
-        playerRenderer = GetComponentInChildren<Renderer>();
 
-        
         var controller = GetComponent<PlayerController>();
         if (controller != null)
             playerConfig = controller.config;
-
-        if (playerRenderer != null)
-            playerOriginalColor = playerRenderer.material.color;
-
-        
-        if (showRangeInGame)
-            CreateRangeCircle();
     }
 
     public void AttackLeft()
@@ -99,14 +68,12 @@ public class PlayerCombat : MonoBehaviour
 
     private void PerformAttack(EnemyInputType inputType)
     {
-        
-        FlashPlayer();
         PlaySFX(attackSFX);
         OnAttackPerformed?.Invoke();
 
         if (EnemySpawnManager.Instance == null) return;
 
-        
+        // Touche UN SEUL ennemi : le plus proche dans la range
         EnemyBase target = EnemySpawnManager.Instance.GetClosestEnemy(
             transform.position, inputType, hitRange);
 
@@ -141,24 +108,22 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.TooSoon:
-                
                 PlaySFX(sfxTooSoon);
                 if (ScoreManager.Instance != null)
-                    ScoreManager.Instance.RegisterMiss(); 
+                    ScoreManager.Instance.RegisterMiss();
                 if (playerHealth != null)
                 {
                     int dmg = playerConfig != null ? playerConfig.damageOnTooSoon : 5;
-                    playerHealth.TakeDamage(dmg); 
+                    playerHealth.TakeDamage(dmg);
                 }
                 if (TimingFeedbackUI.Instance != null)
                     TimingFeedbackUI.Instance.ShowFeedback(result, enemy.transform.position);
                 break;
 
             case TimingResult.TooLate:
-                
                 PlaySFX(sfxTooLate);
                 if (ScoreManager.Instance != null)
-                    ScoreManager.Instance.RegisterHit(result); 
+                    ScoreManager.Instance.RegisterHit(result);
                 if (playerHealth != null)
                 {
                     int dmg = playerConfig != null ? playerConfig.damageOnTooLate : 3;
@@ -174,81 +139,12 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    
-    
-    
-    private void FlashPlayer()
-    {
-        if (playerRenderer == null) return;
-
-        if (flashCoroutine != null)
-            StopCoroutine(flashCoroutine);
-
-        flashCoroutine = StartCoroutine(FlashCoroutine());
-    }
-
-    private IEnumerator FlashCoroutine()
-    {
-        if (playerRenderer != null)
-            playerRenderer.material.color = attackFlashColor;
-
-        yield return new WaitForSeconds(attackFlashDuration);
-
-        if (playerRenderer != null)
-            playerRenderer.material.color = playerOriginalColor;
-
-        flashCoroutine = null;
-    }
-
     private void PlaySFX(EventReference sfxEvent)
     {
         if (!sfxEvent.IsNull && FMODAudioManager.Instance != null)
         {
             FMODAudioManager.Instance.PlaySFX(sfxEvent);
         }
-    }
-
-    
-    
-    
-
-    private void CreateRangeCircle()
-    {
-        GameObject rangeGO = new GameObject("AttackRangeCircle");
-        rangeGO.transform.SetParent(transform);
-        rangeGO.transform.localPosition = Vector3.zero;
-
-        rangeLineRenderer = rangeGO.AddComponent<LineRenderer>();
-        rangeLineRenderer.useWorldSpace = false;
-        rangeLineRenderer.loop = true;
-        rangeLineRenderer.startWidth = 0.05f;
-        rangeLineRenderer.endWidth = 0.05f;
-        rangeLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        rangeLineRenderer.startColor = rangeCircleColor;
-        rangeLineRenderer.endColor = rangeCircleColor;
-
-        int segments = 64;
-        rangeLineRenderer.positionCount = segments;
-        UpdateRangeCircle();
-    }
-
-    private void UpdateRangeCircle()
-    {
-        if (rangeLineRenderer == null) return;
-        int segments = rangeLineRenderer.positionCount;
-        for (int i = 0; i < segments; i++)
-        {
-            float angle = (float)i / segments * 2f * Mathf.PI;
-            float x = Mathf.Cos(angle) * hitRange;
-            float z = Mathf.Sin(angle) * hitRange;
-            rangeLineRenderer.SetPosition(i, new Vector3(x, 0.05f, z));
-        }
-    }
-
-    private void Update()
-    {
-        if (rangeLineRenderer != null)
-            UpdateRangeCircle();
     }
 
     private void OnDrawGizmos()

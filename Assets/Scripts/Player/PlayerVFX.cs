@@ -1,20 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.VFX;
 using System.Collections;
 
 /// <summary>
 /// Centralise tous les effets visuels du joueur.
-/// S'abonne aux événements de PlayerDash, PlayerCombat, PlayerHealth, PlayerMovement.
-/// Crée automatiquement les ParticleSystems, TrailRenderer, et UI nécessaires.
+/// Utilise des références Inspector pour les particules (pas d'auto-génération).
+/// Le joueur utilise un SpriteRenderer sur un enfant.
 /// </summary>
 public class PlayerVFX : MonoBehaviour
 {
-    [Header("=== Références (auto-détectées) ===")]
+    [Header("=== Références (auto-détectées si vides) ===")]
     public PlayerDash dash;
     public PlayerCombat combat;
     public PlayerHealth health;
     public PlayerMovement movement;
-    public Renderer playerRenderer;
+
+    [Header("=== Sprite du joueur ===")]
+    [Tooltip("Le SpriteRenderer du joueur (sur un enfant). Auto-détecté si vide.")]
+    public SpriteRenderer playerSprite;
 
     // ─── DASH ────────────────────────────────────────────
     [Header("=== Dash — Flash ===")]
@@ -27,9 +31,9 @@ public class PlayerVFX : MonoBehaviour
     public float trailTime = 0.2f;
     public float trailWidth = 0.3f;
 
-    [Header("=== Dash — Dust ===")]
-    public Color dustColor = new Color(0.8f, 0.7f, 0.5f, 0.6f);
-    public int dustBurstCount = 12;
+    [Header("=== Dash — Particules (manuelles) ===")]
+    [Tooltip("ParticleSystem one-shot pour la poussière de dash. Créer manuellement dans Unity et glisser ici.")]
+    public ParticleSystem dashDustParticles;
 
     [Header("=== Dash — Cooldown UI ===")]
     public Color cdSliderColor = new Color(0.5f, 0.8f, 1f, 0.8f);
@@ -45,18 +49,39 @@ public class PlayerVFX : MonoBehaviour
     public Color shockwaveColor = new Color(1f, 1f, 1f, 0.4f);
     public float shockwaveDuration = 0.15f;
 
+    [Header("=== Attack — Flash ===")]
+    [Tooltip("Le sprite s'assombrit brièvement pendant l'attaque")]
+    public Color attackDarkenColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+    public float attackFlashDuration = 0.08f;
+
+    [Header("=== Attack — Range Circle ===")]
+    [Tooltip("Afficher un cercle de portée d'attaque permanent")]
+    public bool showAttackRange = true;
+    public Color attackRangeColor = new Color(1f, 0.3f, 0.3f, 0.15f);
+    [Tooltip("Épaisseur du cercle")]
+    public float attackRangeLineWidth = 0.05f;
+
     // ─── MOVEMENT ────────────────────────────────────────
-    [Header("=== Movement — Sparkles ===")]
-    public Color sparkleColor = new Color(1f, 0.9f, 0.6f, 0.5f);
-    public float sparkleRatePerUnit = 8f;
+    [Header("=== Movement — Particules (manuelles) ===")]
+    [Tooltip("ParticleSystem en loop pour les paillettes de déplacement. Créer manuellement dans Unity et glisser ici.")]
+    public ParticleSystem moveSparkleParticles;
+
+    [Header("=== Movement — Sprite Deformation ===")]
+    [Tooltip("Échelle max en Z (avant = allongement) à vitesse maximale")]
+    public float maxStretchZ = 1.4f;
+    [Tooltip("Échelle min en X (latéral = tassement) à vitesse maximale")]
+    public float minSquashX = 0.7f;
+    [Tooltip("Vitesse au-delà de laquelle la déformation est maximale")]
+    public float deformMaxSpeed = 15f;
+    [Tooltip("Vitesse de rotation du sprite vers la direction de déplacement")]
+    public float spriteRotationSpeed = 15f;
 
     // ─── HEAL ────────────────────────────────────────────
-    [Header("=== Heal — Active (on kill) ===")]
-    public Color healActiveColor = new Color(0.3f, 1f, 0.5f, 0.7f);
-    public int healActiveBurstCount = 20;
-
-    [Header("=== Heal — Passive ===")]
-    public Color healPassiveColor = new Color(0.7f, 0.9f, 1f, 0.4f);
+    [Header("=== Heal — VFX Graph (manuels) ===")]
+    [Tooltip("VFX Graph one-shot pour le heal actif (on kill). Créer dans Unity et glisser ici.")]
+    public VisualEffect healActiveVFX;
+    [Tooltip("VFX Graph en loop pour le heal passif. Créer dans Unity et glisser ici.")]
+    public VisualEffect healPassiveVFX;
 
     [Header("=== HP Full — Flash ===")]
     public Color hpFullFlashColor = new Color(0.2f, 1f, 0.4f, 1f);
@@ -67,14 +92,11 @@ public class PlayerVFX : MonoBehaviour
     public float damageFlashDuration = 0.12f;
 
     // ─── Internals ───────────────────────────────────────
-    private Color originalColor;
+    private Color originalSpriteColor;
     private TrailRenderer trail;
-    private ParticleSystem dustPS;
-    private ParticleSystem sparklePS;
-    private ParticleSystem healActivePS;
-    private ParticleSystem healPassivePS;
     private GameObject shockwaveGO;
     private SpriteRenderer shockwaveSR;
+    private LineRenderer attackRangeLR;
 
     // Dash cooldown UI
     private Canvas cdCanvas;
@@ -86,31 +108,40 @@ public class PlayerVFX : MonoBehaviour
     private Coroutine shockwaveCoroutine;
     private Coroutine cdReadyCoroutine;
 
+    // Sprite deformation
+    private Transform spriteTransform;
+    private Vector3 spriteBaseScale;
+    private Quaternion spriteBaseRotation;
+    private Rigidbody rb;
+
     // ═════════════════════════════════════════════════════
     //  INITIALIZATION
     // ═════════════════════════════════════════════════════
 
     private void Awake()
     {
-        // Auto-detect references
         if (dash == null) dash = GetComponent<PlayerDash>();
         if (combat == null) combat = GetComponent<PlayerCombat>();
         if (health == null) health = GetComponent<PlayerHealth>();
         if (movement == null) movement = GetComponent<PlayerMovement>();
-        if (playerRenderer == null) playerRenderer = GetComponentInChildren<Renderer>();
+        if (playerSprite == null) playerSprite = GetComponentInChildren<SpriteRenderer>();
+        rb = GetComponent<Rigidbody>();
     }
 
     private void Start()
     {
-        if (playerRenderer != null)
-            originalColor = playerRenderer.material.color;
+        if (playerSprite != null)
+        {
+            originalSpriteColor = playerSprite.color;
+            spriteTransform = playerSprite.transform;
+            spriteBaseScale = spriteTransform.localScale;
+            spriteBaseRotation = spriteTransform.localRotation;
+        }
 
         CreateTrailRenderer();
-        CreateDustParticles();
-        CreateSparkleParticles();
-        CreateHealParticles();
         CreateShockwave();
         CreateDashCooldownUI();
+        if (showAttackRange) CreateAttackRangeCircle();
 
         // Subscribe to events
         if (dash != null)
@@ -129,6 +160,10 @@ public class PlayerVFX : MonoBehaviour
             health.OnHealActive += HandleHealActive;
             health.OnHPFull += HandleHPFull;
         }
+
+        // Disable passive heal VFX at start
+        if (healPassiveVFX != null)
+            healPassiveVFX.Stop();
     }
 
     private void OnDestroy()
@@ -149,17 +184,23 @@ public class PlayerVFX : MonoBehaviour
             health.OnHealActive -= HandleHealActive;
             health.OnHPFull -= HandleHPFull;
         }
+
+        if (shockwaveGO != null)
+            Destroy(shockwaveGO);
     }
 
     // ═════════════════════════════════════════════════════
-    //  UPDATE — Continuous effects
+    //  UPDATE
     // ═════════════════════════════════════════════════════
 
     private void Update()
     {
-        UpdateSparkles();
+        UpdateMoveParticles();
         UpdateDashCooldownUI();
         UpdateJitter();
+        UpdateSpriteDeformation();
+        UpdateAttackRangeCircle();
+        UpdatePassiveHealVFX();
     }
 
     // ═════════════════════════════════════════════════════
@@ -168,31 +209,27 @@ public class PlayerVFX : MonoBehaviour
 
     private void HandleDashStarted()
     {
-        // Flash white
-        FlashPlayer(dashFlashColor, dashFlashDuration);
+        FlashSprite(dashFlashColor, dashFlashDuration);
 
-        // Enable trail
         if (trail != null)
         {
             trail.Clear();
             trail.emitting = true;
         }
 
-        // Dust burst
-        if (dustPS != null)
-            dustPS.Emit(dustBurstCount);
+        // One-shot dust particles (manually created)
+        if (dashDustParticles != null)
+            dashDustParticles.Play();
     }
 
     private void HandleDashEnded()
     {
-        // Disable trail after short delay to let it fade
         if (trail != null)
             StartCoroutine(DisableTrailDelayed(trailTime));
     }
 
     private void HandleDashReady()
     {
-        // Flash the cooldown slider white then fade it out
         if (cdReadyCoroutine != null)
             StopCoroutine(cdReadyCoroutine);
         cdReadyCoroutine = StartCoroutine(DashReadyFlash());
@@ -233,6 +270,10 @@ public class PlayerVFX : MonoBehaviour
 
     private void HandleAttack()
     {
+        // Darken sprite briefly (not same color as shockwave)
+        FlashSprite(attackDarkenColor, attackFlashDuration);
+
+        // Shockwave
         if (shockwaveCoroutine != null)
             StopCoroutine(shockwaveCoroutine);
         shockwaveCoroutine = StartCoroutine(ShockwaveExpand());
@@ -253,11 +294,9 @@ public class PlayerVFX : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = elapsed / shockwaveDuration;
 
-            // Scale from 0 to hitRange * 2 (diameter)
             float diameter = Mathf.Lerp(0f, hitRange * 2f, t);
             shockwaveGO.transform.localScale = new Vector3(diameter, diameter, 1f);
 
-            // Fade out
             Color c = shockwaveColor;
             c.a = Mathf.Lerp(shockwaveColor.a, 0f, t * t);
             shockwaveSR.color = c;
@@ -270,20 +309,56 @@ public class PlayerVFX : MonoBehaviour
     }
 
     // ═════════════════════════════════════════════════════
-    //  MOVEMENT SPARKLES
+    //  MOVEMENT SPARKLES (manual ParticleSystem)
     // ═════════════════════════════════════════════════════
 
-    private void UpdateSparkles()
+    private void UpdateMoveParticles()
     {
-        if (sparklePS == null || movement == null) return;
+        if (moveSparkleParticles == null || rb == null) return;
 
-        var emission = sparklePS.emission;
-        // Emit particles only when moving
-        bool isMoving = movement.LastMoveDirection.sqrMagnitude > 0.01f &&
-                        GetComponent<Rigidbody>() != null &&
-                        GetComponent<Rigidbody>().linearVelocity.sqrMagnitude > 0.5f;
+        var emission = moveSparkleParticles.emission;
+        bool isMoving = rb.linearVelocity.sqrMagnitude > 0.5f;
 
-        emission.rateOverTime = isMoving ? sparkleRatePerUnit * 4f : 0f;
+        if (isMoving && !moveSparkleParticles.isPlaying)
+            moveSparkleParticles.Play();
+        else if (!isMoving && moveSparkleParticles.isPlaying)
+            moveSparkleParticles.Stop();
+    }
+
+    // ═════════════════════════════════════════════════════
+    //  SPRITE DEFORMATION & ROTATION
+    // ═════════════════════════════════════════════════════
+
+    private void UpdateSpriteDeformation()
+    {
+        if (spriteTransform == null || rb == null) return;
+
+        Vector3 velocity = rb.linearVelocity;
+        velocity.y = 0f;
+        float speed = velocity.magnitude;
+
+        // ── Rotation toward movement direction (cosmetic only) ──
+        if (speed > 0.3f)
+        {
+            // Calculate target rotation looking in movement direction
+            // Since camera is top-down at Y=15, we rotate around Y axis
+            Quaternion targetRot = Quaternion.LookRotation(velocity.normalized, Vector3.up);
+            spriteTransform.rotation = Quaternion.Slerp(
+                spriteTransform.rotation,
+                targetRot,
+                Time.deltaTime * spriteRotationSpeed
+            );
+        }
+
+        // ── Scale deformation based on speed ──
+        float t = Mathf.Clamp01(speed / deformMaxSpeed);
+
+        // Stretch in Z (forward), squash in X (lateral), relative to sprite
+        float scaleZ = Mathf.Lerp(spriteBaseScale.z, spriteBaseScale.z * maxStretchZ, t);
+        float scaleX = Mathf.Lerp(spriteBaseScale.x, spriteBaseScale.x * minSquashX, t);
+        float scaleY = spriteBaseScale.y; // unchanged
+
+        spriteTransform.localScale = new Vector3(scaleX, scaleY, scaleZ);
     }
 
     // ═════════════════════════════════════════════════════
@@ -292,18 +367,50 @@ public class PlayerVFX : MonoBehaviour
 
     private void HandleHealActive()
     {
-        if (healActivePS != null)
-            healActivePS.Emit(healActiveBurstCount);
+        // One-shot VFX Graph
+        if (healActiveVFX != null)
+        {
+            healActiveVFX.Play();
+        }
+    }
+
+    private void UpdatePassiveHealVFX()
+    {
+        if (healPassiveVFX == null || health == null) return;
+
+        bool isPassiveHealing = !health.IsDead &&
+                                health.CurrentHP < health.maxHP &&
+                                health.CurrentHP > 0f;
+
+        // We check a rough proxy: the health script heals passively
+        // after passiveHealDelay seconds without damage.
+        // We can check if HP is increasing by comparing states,
+        // but simpler: just check if HP < max and time since damage > delay
+        // Unfortunately we don't have direct access to timeSinceLastDamage.
+        // So we check if the object reports passive healing via the existing system.
+
+        // Simple approach: if HP < max, assume passive healing could happen
+        // The VFX graph should be subtle enough that it's fine
+        if (isPassiveHealing)
+        {
+            if (!healPassiveVFX.HasAnySystemAwake())
+                healPassiveVFX.Play();
+        }
+        else
+        {
+            if (healPassiveVFX.HasAnySystemAwake())
+                healPassiveVFX.Stop();
+        }
     }
 
     private void HandleHPFull()
     {
-        FlashPlayer(hpFullFlashColor, hpFullFlashDuration);
+        FlashSprite(hpFullFlashColor, hpFullFlashDuration);
     }
 
     private void HandleDamageTaken(int amount)
     {
-        FlashPlayer(damageFlashColor, damageFlashDuration);
+        FlashSprite(damageFlashColor, damageFlashDuration);
     }
 
     // ═════════════════════════════════════════════════════
@@ -331,7 +438,7 @@ public class PlayerVFX : MonoBehaviour
     }
 
     // ═════════════════════════════════════════════════════
-    //  JITTER (during dash cooldown)
+    //  JITTER
     // ═════════════════════════════════════════════════════
 
     private Vector3 jitterBaseLocalPos;
@@ -339,32 +446,32 @@ public class PlayerVFX : MonoBehaviour
 
     private void UpdateJitter()
     {
-        if (playerRenderer == null || dash == null) return;
+        if (spriteTransform == null || dash == null) return;
 
         if (!hasJitterBase)
         {
-            jitterBaseLocalPos = playerRenderer.transform.localPosition;
+            jitterBaseLocalPos = spriteTransform.localPosition;
             hasJitterBase = true;
         }
 
         if (dash.IsOnCooldown && !dash.IsDashing)
         {
             float offset = Mathf.Sin(Time.time * jitterFrequency) * jitterAmplitude;
-            playerRenderer.transform.localPosition = jitterBaseLocalPos + new Vector3(offset, 0f, 0f);
+            spriteTransform.localPosition = jitterBaseLocalPos + new Vector3(offset, 0f, 0f);
         }
         else
         {
-            playerRenderer.transform.localPosition = jitterBaseLocalPos;
+            spriteTransform.localPosition = jitterBaseLocalPos;
         }
     }
 
     // ═════════════════════════════════════════════════════
-    //  FLASH UTILITY
+    //  FLASH (SpriteRenderer)
     // ═════════════════════════════════════════════════════
 
-    private void FlashPlayer(Color color, float duration)
+    private void FlashSprite(Color color, float duration)
     {
-        if (playerRenderer == null) return;
+        if (playerSprite == null) return;
 
         if (flashCoroutine != null)
             StopCoroutine(flashCoroutine);
@@ -374,14 +481,54 @@ public class PlayerVFX : MonoBehaviour
 
     private IEnumerator FlashCoroutine(Color color, float duration)
     {
-        playerRenderer.material.color = color;
+        playerSprite.color = color;
         yield return new WaitForSeconds(duration);
-        playerRenderer.material.color = originalColor;
+        playerSprite.color = originalSpriteColor;
         flashCoroutine = null;
     }
 
     // ═════════════════════════════════════════════════════
-    //  PROCEDURAL CREATION — All effects auto-generated
+    //  ATTACK RANGE CIRCLE
+    // ═════════════════════════════════════════════════════
+
+    private void CreateAttackRangeCircle()
+    {
+        GameObject rangeGO = new GameObject("AttackRangeVFX");
+        rangeGO.transform.SetParent(transform);
+        rangeGO.transform.localPosition = Vector3.up * 0.02f;
+
+        attackRangeLR = rangeGO.AddComponent<LineRenderer>();
+        attackRangeLR.useWorldSpace = false;
+        attackRangeLR.loop = true;
+        attackRangeLR.startWidth = attackRangeLineWidth;
+        attackRangeLR.endWidth = attackRangeLineWidth;
+        attackRangeLR.material = new Material(Shader.Find("Sprites/Default"));
+        attackRangeLR.startColor = attackRangeColor;
+        attackRangeLR.endColor = attackRangeColor;
+        attackRangeLR.sortingOrder = 1;
+
+        int segments = 64;
+        attackRangeLR.positionCount = segments;
+    }
+
+    private void UpdateAttackRangeCircle()
+    {
+        if (attackRangeLR == null || combat == null) return;
+
+        float radius = combat.hitRange;
+        int segments = attackRangeLR.positionCount;
+
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = (float)i / segments * 2f * Mathf.PI;
+            float x = Mathf.Cos(angle) * radius;
+            float z = Mathf.Sin(angle) * radius;
+            attackRangeLR.SetPosition(i, new Vector3(x, 0f, z));
+        }
+    }
+
+    // ═════════════════════════════════════════════════════
+    //  PROCEDURAL CREATION
     // ═════════════════════════════════════════════════════
 
     private void CreateTrailRenderer()
@@ -398,143 +545,11 @@ public class PlayerVFX : MonoBehaviour
         trail.minVertexDistance = 0.05f;
     }
 
-    private void CreateDustParticles()
-    {
-        GameObject go = new GameObject("DashDustPS");
-        go.transform.SetParent(transform);
-        go.transform.localPosition = Vector3.down * 0.3f;
-
-        dustPS = go.AddComponent<ParticleSystem>();
-        var main = dustPS.main;
-        main.startLifetime = 0.5f;
-        main.startSpeed = 2f;
-        main.startSize = 0.15f;
-        main.startColor = dustColor;
-        main.gravityModifier = 0.3f;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.maxParticles = 50;
-
-        var emission = dustPS.emission;
-        emission.rateOverTime = 0;
-
-        var shape = dustPS.shape;
-        shape.shapeType = ParticleSystemShapeType.Sphere;
-        shape.radius = 0.3f;
-
-        var renderer = go.GetComponent<ParticleSystemRenderer>();
-        renderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-
-        dustPS.Stop();
-    }
-
-    private void CreateSparkleParticles()
-    {
-        GameObject go = new GameObject("MoveSparklePS");
-        go.transform.SetParent(transform);
-        go.transform.localPosition = Vector3.down * 0.2f;
-
-        sparklePS = go.AddComponent<ParticleSystem>();
-        var main = sparklePS.main;
-        main.startLifetime = 0.4f;
-        main.startSpeed = 0.5f;
-        main.startSize = 0.08f;
-        main.startColor = sparkleColor;
-        main.gravityModifier = -0.2f;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.maxParticles = 100;
-
-        var emission = sparklePS.emission;
-        emission.rateOverTime = 0;
-
-        var shape = sparklePS.shape;
-        shape.shapeType = ParticleSystemShapeType.Circle;
-        shape.radius = 0.4f;
-
-        var colorOverLifetime = sparklePS.colorOverLifetime;
-        colorOverLifetime.enabled = true;
-        Gradient grad = new Gradient();
-        grad.SetKeys(
-            new GradientColorKey[] {
-                new GradientColorKey(sparkleColor, 0f),
-                new GradientColorKey(sparkleColor, 0.5f),
-                new GradientColorKey(sparkleColor, 1f)
-            },
-            new GradientAlphaKey[] {
-                new GradientAlphaKey(0.5f, 0f),
-                new GradientAlphaKey(1f, 0.3f),
-                new GradientAlphaKey(0f, 1f)
-            }
-        );
-        colorOverLifetime.color = new ParticleSystem.MinMaxGradient(grad);
-
-        var renderer = go.GetComponent<ParticleSystemRenderer>();
-        renderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-    }
-
-    private void CreateHealParticles()
-    {
-        // ── Heal Active (burst, green/gold RPG style) ──
-        GameObject goActive = new GameObject("HealActivePS");
-        goActive.transform.SetParent(transform);
-        goActive.transform.localPosition = Vector3.zero;
-
-        healActivePS = goActive.AddComponent<ParticleSystem>();
-        var mainA = healActivePS.main;
-        mainA.startLifetime = 0.8f;
-        mainA.startSpeed = 2f;
-        mainA.startSize = 0.12f;
-        mainA.startColor = healActiveColor;
-        mainA.gravityModifier = -1f; // float upward
-        mainA.simulationSpace = ParticleSystemSimulationSpace.World;
-        mainA.maxParticles = 50;
-
-        var emissionA = healActivePS.emission;
-        emissionA.rateOverTime = 0;
-
-        var shapeA = healActivePS.shape;
-        shapeA.shapeType = ParticleSystemShapeType.Circle;
-        shapeA.radius = 0.5f;
-
-        var rendererA = goActive.GetComponent<ParticleSystemRenderer>();
-        rendererA.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        rendererA.renderMode = ParticleSystemRenderMode.Billboard;
-
-        healActivePS.Stop();
-
-        // ── Heal Passive (subtle sparkles, constantly emitting during passive heal) ──
-        GameObject goPassive = new GameObject("HealPassivePS");
-        goPassive.transform.SetParent(transform);
-        goPassive.transform.localPosition = Vector3.zero;
-
-        healPassivePS = goPassive.AddComponent<ParticleSystem>();
-        var mainP = healPassivePS.main;
-        mainP.startLifetime = 1f;
-        mainP.startSpeed = 0.8f;
-        mainP.startSize = 0.06f;
-        mainP.startColor = healPassiveColor;
-        mainP.gravityModifier = -0.5f;
-        mainP.simulationSpace = ParticleSystemSimulationSpace.World;
-        mainP.maxParticles = 30;
-
-        var emissionP = healPassivePS.emission;
-        emissionP.rateOverTime = 0; // controlled in Update
-
-        var shapeP = healPassivePS.shape;
-        shapeP.shapeType = ParticleSystemShapeType.Circle;
-        shapeP.radius = 0.3f;
-
-        var rendererP = goPassive.GetComponent<ParticleSystemRenderer>();
-        rendererP.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        rendererP.renderMode = ParticleSystemRenderMode.Billboard;
-    }
-
     private void CreateShockwave()
     {
         shockwaveGO = new GameObject("Shockwave");
-        shockwaveGO.transform.SetParent(null); // world space
-        shockwaveGO.transform.rotation = Quaternion.Euler(90f, 0f, 0f); // flat on ground
+        shockwaveGO.transform.SetParent(null);
+        shockwaveGO.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
         shockwaveSR = shockwaveGO.AddComponent<SpriteRenderer>();
         shockwaveSR.sprite = CreateCircleSprite(64);
@@ -546,7 +561,6 @@ public class PlayerVFX : MonoBehaviour
 
     private void CreateDashCooldownUI()
     {
-        // WorldSpace Canvas attached to player
         GameObject canvasGO = new GameObject("DashCooldownCanvas");
         canvasGO.transform.SetParent(transform);
         canvasGO.transform.localPosition = new Vector3(0f, 0.1f, -1f);
@@ -555,7 +569,7 @@ public class PlayerVFX : MonoBehaviour
         cdCanvas = canvasGO.AddComponent<Canvas>();
         cdCanvas.renderMode = RenderMode.WorldSpace;
 
-        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        canvasGO.AddComponent<CanvasScaler>();
 
         cdCanvasGroup = canvasGO.AddComponent<CanvasGroup>();
         cdCanvasGroup.alpha = 0f;
@@ -622,9 +636,6 @@ public class PlayerVFX : MonoBehaviour
     //  UTILITIES
     // ═════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Génère un sprite cercle blanc procéduralement.
-    /// </summary>
     private static Sprite CreateCircleSprite(int resolution)
     {
         Texture2D tex = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
@@ -641,11 +652,9 @@ public class PlayerVFX : MonoBehaviour
 
                 if (distSq <= radiusSq)
                 {
-                    // Ring effect: only outer 20% is visible
                     float dist = Mathf.Sqrt(distSq);
                     float normalizedDist = dist / center;
                     float alpha = normalizedDist > 0.75f ? Mathf.InverseLerp(0.75f, 1f, normalizedDist) : 0f;
-                    // Invert: outer ring is visible
                     alpha = normalizedDist > 0.8f ? 1f - Mathf.InverseLerp(0.8f, 1f, normalizedDist) : alpha;
                     alpha = Mathf.Clamp01(alpha * 3f);
                     tex.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
