@@ -338,25 +338,26 @@ public class PlayerVFX : MonoBehaviour
         float speed = velocity.magnitude;
 
         // ── Rotation toward movement direction (cosmetic only) ──
+        // Le sprite a une rotation de base de X=90 pour faire face à la caméra top-down.
+        // On tourne UNIQUEMENT autour de Y pour orienter le sprite dans la direction du mouvement.
         if (speed > 0.3f)
         {
-            // Calculate target rotation looking in movement direction
-            // Since camera is top-down at Y=15, we rotate around Y axis
-            Quaternion targetRot = Quaternion.LookRotation(velocity.normalized, Vector3.up);
-            spriteTransform.rotation = Quaternion.Slerp(
-                spriteTransform.rotation,
-                targetRot,
-                Time.deltaTime * spriteRotationSpeed
-            );
+            float targetYAngle = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
+            float currentY = spriteTransform.localEulerAngles.y;
+            float smoothY = Mathf.LerpAngle(currentY, targetYAngle, Time.deltaTime * spriteRotationSpeed);
+
+            // Conserver X=90 (face caméra), ne changer que Y, Z=0
+            spriteTransform.localEulerAngles = new Vector3(90f, smoothY, 0f);
         }
 
         // ── Scale deformation based on speed ──
         float t = Mathf.Clamp01(speed / deformMaxSpeed);
 
-        // Stretch in Z (forward), squash in X (lateral), relative to sprite
-        float scaleZ = Mathf.Lerp(spriteBaseScale.z, spriteBaseScale.z * maxStretchZ, t);
+        // Avec X=90°, le local Y du sprite pointe dans la direction "avant" sur le plan XZ.
+        // Stretch en Y (allongement avant), squash en X (tassement latéral), Z inchangé.
+        float scaleY = Mathf.Lerp(spriteBaseScale.y, spriteBaseScale.y * maxStretchZ, t);
         float scaleX = Mathf.Lerp(spriteBaseScale.x, spriteBaseScale.x * minSquashX, t);
-        float scaleY = spriteBaseScale.y; // unchanged
+        float scaleZ = spriteBaseScale.z; // inchangé
 
         spriteTransform.localScale = new Vector3(scaleX, scaleY, scaleZ);
     }
