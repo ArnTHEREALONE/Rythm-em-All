@@ -1,11 +1,8 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.SceneManagement;
+using System;
 
-/// <summary>
-/// Gestionnaire principal du gameplay. Gère le flow d'une partie.
-/// La musique est jouée via FMOD — plus de chargement de fichier.
-/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -13,7 +10,7 @@ public class GameManager : MonoBehaviour
     public enum GameState
     {
         Loading,
-        WaitingToStart,
+        Countdown,
         Playing,
         Paused,
         GameOver,
@@ -29,15 +26,27 @@ public class GameManager : MonoBehaviour
     [Header("=== État ===")]
     [SerializeField] private GameState currentState = GameState.Loading;
 
-    [Header("=== Délai ===")]
-    [Tooltip("Délai avant le début de la musique (secondes)")]
-    public float startDelay = 3f;
+    [Header("=== Volume écran de fin ===")]
+    [Tooltip("Volume de la musique pendant les écrans de victoire/défaite (0-1)")]
+    public float endScreenMusicVolume = 0.2f;
 
-    /// <summary>État actuel du jeu.</summary>
+    [Header("=== Décompte ===")]
+    [Tooltip("Son joué à chaque tick du décompte (3, 2, 1)")]
+    public FMODUnity.EventReference countdownTickSFX;
+    [Tooltip("Son joué au 'Go!'")]
+    public FMODUnity.EventReference countdownGoSFX;
+
     public GameState CurrentState => currentState;
 
-    /// <summary>BeatMap actuellement chargée (définie avant le chargement de scène).</summary>
     public static BeatMapData SelectedBeatMap { get; set; }
+
+    // Events
+    public event Action<string> OnCountdownTick;
+    public event Action OnGameStarted;
+    public event Action<int, bool> OnVictory;
+    public event Action<int> OnGameOver;
+
+    private bool victoryTriggered = false;
 
     private void Awake()
     {
@@ -51,7 +60,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Distribuer les configs aux singletons
         if (SpeedMultiplier.Instance != null)
             SpeedMultiplier.Instance.config = gameConfig;
 
@@ -61,19 +69,15 @@ public class GameManager : MonoBehaviour
         if (TimingJudge.Instance != null)
             TimingJudge.Instance.config = gameConfig;
 
-        // Initialiser le joueur
         if (player != null && playerConfig != null)
             player.Initialize(playerConfig);
 
-        // Écouter la mort du joueur
         if (player != null && player.health != null)
             player.health.OnDeath += HandlePlayerDeath;
 
-        // Synchroniser le pitch avec le SpeedMultiplier
         if (SpeedMultiplier.Instance != null)
             SpeedMultiplier.Instance.OnSpeedChanged += OnSpeedChanged;
 
-        // Charger la beatmap
         if (SelectedBeatMap != null)
         {
             StartCoroutine(StartGame());
@@ -86,18 +90,19 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Démarre la partie avec la beatmap sélectionnée.
-    /// Plus de chargement de fichier — FMOD event joue directement.
+    /// Lance le jeu : initialise les systèmes, lance la musique, affiche le décompte
+    /// pendant le songOffset, puis démarre les beats.
     /// </summary>
     private IEnumerator StartGame()
     {
         currentState = GameState.Loading;
+        victoryTriggered = false;
 
-        // Initialiser le BeatManager
+        // Initialiser BeatManager
         if (BeatManager.Instance != null)
             BeatManager.Instance.Initialize(SelectedBeatMap.bpm, SelectedBeatMap.songOffset);
 
-        // Initialiser le SpawnManager
+        // Initialiser EnemySpawnManager
         if (EnemySpawnManager.Instance != null)
             EnemySpawnManager.Instance.Initialize(SelectedBeatMap);
 
@@ -105,37 +110,50 @@ public class GameManager : MonoBehaviour
         if (ScoreManager.Instance != null)
             ScoreManager.Instance.ResetAll();
 
-        // Attendre avant de commencer
-        currentState = GameState.WaitingToStart;
-        yield return new WaitForSeconds(startDelay);
-
-        // GO ! — Jouer la musique via FMOD (l'event path est dans la beatmap)
-        currentState = GameState.Playing;
-
+        // Lancer la musique FMOD immédiatement
         if (FMODAudioManager.Instance != null)
         {
-            // Chercher le MusicEntry dans la base de données pour l'EventReference
             MusicEntry entry = musicDatabase?.GetByEventPath(SelectedBeatMap.fmodEventPath);
             if (entry != null)
-            {
                 FMODAudioManager.Instance.PlayMusic(entry.fmodEvent);
-            }
             else
-            {
-                // Fallback : utiliser le chemin directement
                 FMODAudioManager.Instance.PlayMusic(SelectedBeatMap.fmodEventPath);
-            }
 
-            // Écouter la fin de la musique
             FMODAudioManager.Instance.OnMusicEnded += CheckVictory;
         }
 
+        // ── Décompte distribué sur le songOffset ──
+        float offset = Mathf.Max(SelectedBeatMap.songOffset, 0.5f);
+        currentState = GameState.Countdown;
+
+        // On distribue 4 ticks (3, 2, 1, Go!) de façon uniforme sur offset
+        float tickInterval = offset / 4f;
+        string[] ticks = { "3", "2", "1", "Go!" };
+
+        for (int i = 0; i < ticks.Length; i++)
+        {
+            OnCountdownTick?.Invoke(ticks[i]);
+
+            if (i < ticks.Length - 1)
+            {
+                if (!countdownTickSFX.IsNull && FMODAudioManager.Instance != null)
+                    FMODAudioManager.Instance.PlaySFX(countdownTickSFX);
+            }
+            else
+            {
+                if (!countdownGoSFX.IsNull && FMODAudioManager.Instance != null)
+                    FMODAudioManager.Instance.PlaySFX(countdownGoSFX);
+            }
+
+            yield return new WaitForSeconds(tickInterval);
+        }
+
+        // ── Début du gameplay ──
+        currentState = GameState.Playing;
         BeatManager.Instance?.StartBeat();
+        OnGameStarted?.Invoke();
     }
 
-    /// <summary>
-    /// Crée une beatmap de test pour le développement.
-    /// </summary>
     private void LoadTestBeatMap()
     {
         SelectedBeatMap = new BeatMapData
@@ -143,7 +161,7 @@ public class GameManager : MonoBehaviour
             songName = "Test Map",
             fmodEventPath = "event:/Music/Test",
             bpm = 120,
-            songOffset = 0f,
+            songOffset = 3f,
             notes = new System.Collections.Generic.List<BeatNote>()
         };
 
@@ -157,7 +175,7 @@ public class GameManager : MonoBehaviour
         }
 
         if (BeatManager.Instance != null)
-            BeatManager.Instance.Initialize(120f, 0f);
+            BeatManager.Instance.Initialize(120f, 3f);
 
         if (EnemySpawnManager.Instance != null)
             EnemySpawnManager.Instance.Initialize(SelectedBeatMap);
@@ -169,9 +187,6 @@ public class GameManager : MonoBehaviour
         BeatManager.Instance?.StartBeat();
     }
 
-    /// <summary>
-    /// Callback quand le SpeedMultiplier change — ajuste le pitch FMOD.
-    /// </summary>
     private void OnSpeedChanged(float newSpeed)
     {
         if (FMODAudioManager.Instance != null && currentState == GameState.Playing)
@@ -182,27 +197,41 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (currentState != GameState.Playing) return;
-
-        // Pause avec Escape
-        if (UnityEngine.InputSystem.Keyboard.current != null &&
-            UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (currentState == GameState.Playing)
         {
-            TogglePause();
+            // Vérifier le marqueur de fin explicite
+            if (SelectedBeatMap != null && SelectedBeatMap.endBeat > 0f && !victoryTriggered)
+            {
+                if (BeatManager.Instance != null && BeatManager.Instance.CurrentBeat >= SelectedBeatMap.endBeat)
+                {
+                    HandleVictory();
+                    return;
+                }
+            }
+
+            // Pause avec Echap
+            if (UnityEngine.InputSystem.Keyboard.current != null &&
+                UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                TogglePause();
+            }
         }
     }
 
     private void CheckVictory()
     {
-        if (EnemySpawnManager.Instance != null && EnemySpawnManager.Instance.AllNotesProcessed())
+        if (victoryTriggered) return;
+
+        // Ne déclenche la victoire via OnMusicEnded que si pas de endBeat explicite
+        if (SelectedBeatMap == null || SelectedBeatMap.endBeat <= 0f)
         {
-            HandleVictory();
+            if (EnemySpawnManager.Instance != null && EnemySpawnManager.Instance.AllNotesProcessed())
+            {
+                HandleVictory();
+            }
         }
     }
 
-    /// <summary>
-    /// Toggle pause/resume.
-    /// </summary>
     public void TogglePause()
     {
         if (currentState == GameState.Playing)
@@ -223,27 +252,55 @@ public class GameManager : MonoBehaviour
 
     private void HandlePlayerDeath()
     {
+        if (currentState == GameState.GameOver || currentState == GameState.Victory) return;
+
         currentState = GameState.GameOver;
-        FMODAudioManager.Instance?.StopMusic();
         BeatManager.Instance?.StopBeat();
         EnemySpawnManager.Instance?.StopSpawning();
+
+        // Baisser la musique sur l'écran de défaite
+        FMODAudioManager.Instance?.SetMusicVolume(endScreenMusicVolume);
+
+        int score = ScoreManager.Instance?.TotalScore ?? 0;
+        OnGameOver?.Invoke(score);
     }
 
     private void HandleVictory()
     {
+        if (victoryTriggered) return;
+        victoryTriggered = true;
+
         currentState = GameState.Victory;
         BeatManager.Instance?.StopBeat();
-        Debug.Log($"Victory! Score: {ScoreManager.Instance?.TotalScore}, Best Combo: {ScoreManager.Instance?.BestCombo}");
+
+        // Baisser la musique sur l'écran de victoire
+        FMODAudioManager.Instance?.SetMusicVolume(endScreenMusicVolume);
+
+        int score = ScoreManager.Instance?.TotalScore ?? 0;
+
+        bool isNewRecord = false;
+        if (SelectedBeatMap != null && ScoreManager.Instance != null)
+        {
+            int previousHS = MapSelectUI.GetHighScore(SelectedBeatMap.mapName);
+            isNewRecord = score > previousHS;
+            MapSelectUI.SaveHighScore(SelectedBeatMap.mapName, score);
+        }
+
+        Debug.Log($"Victory! Score: {score}, New Record: {isNewRecord}");
+        OnVictory?.Invoke(score, isNewRecord);
     }
 
     public void RestartGame()
     {
+        // Restaurer le volume avant de relancer
+        FMODAudioManager.Instance?.SetMusicVolume(1f);
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void ReturnToMenu()
     {
+        FMODAudioManager.Instance?.SetMusicVolume(1f);
         Time.timeScale = 1f;
         FMODAudioManager.Instance?.StopMusic();
         SceneManager.LoadScene("MainMenu");

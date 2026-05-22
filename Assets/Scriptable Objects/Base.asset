@@ -16,11 +16,25 @@ MonoBehaviour:
   prefab: {fileID: 656975314614994843, guid: f52707cc8830d5a439777177db272b96, type: 3}
   hitPoints: 1
   baseMoveSpeed: 3
-  damage: 1
+  damage: 30
   requiredInput: 0
-  lifetimeMinBeats: 8
-  lifetimeMaxBeats: 8
+  lifetimeMinBeats: 2
+  lifetimeMaxBeats: 2
   blinkBeatsBeforeVulnerable: 6
   warningColor: {r: 1, g: 0, b: 0, a: 1}
   spamClicksRequired: 0
   spamWindowDuration: 0
+  deathByPlayerSFX:
+    Guid:
+      Data1: 935474345
+      Data2: 1080713182
+      Data3: 480068795
+      Data4: -280621659
+    Path: event:/SFX/rubble-burst-sparkle-epic-stock-media-1-00-02
+  deathNaturalSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 

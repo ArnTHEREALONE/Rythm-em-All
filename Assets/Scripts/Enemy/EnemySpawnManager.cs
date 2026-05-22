@@ -1,10 +1,29 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// Gestionnaire des spawns d'ennemis. Lit la beatmap et spawn les ennemis.
-/// Gère les warnings et le cleanup.
-/// </summary>
+
+
+
+
+[System.Serializable]
+public class EnemyWave
+{
+    public int waveIndex;
+    public float startBeat;
+    public float endBeat;
+    public List<int> spawnerIndices = new List<int>();
+    public List<BeatNote> notes = new List<BeatNote>();
+}
+
+
+
+
+
+
+
+
+
+
 public class EnemySpawnManager : MonoBehaviour
 {
     public static EnemySpawnManager Instance { get; private set; }
@@ -23,16 +42,30 @@ public class EnemySpawnManager : MonoBehaviour
     [Tooltip("Combien de beats avant le targetBeat pour spawner l'ennemi")]
     public float lookAheadBeats = 4f;
 
-    [Tooltip("Combien de beats avant le targetBeat pour afficher le warning")]
-    public float warningAheadBeats = 2f;
+    [Header("=== Vagues ===")]
+    [Tooltip("Durée minimum de pause (en secondes) pour séparer deux vagues")]
+    public float waveGapSeconds = 5f;
+
+    [Tooltip("Combien de beats avant le premier spawn d'une vague pour afficher les warnings")]
+    public float warningAheadBeats = 6f;
+
+    [Header("=== Référence Player ===")]
+    [Tooltip("Glisser le PlayerHealth ici pour les dégâts d'explosion")]
+    public PlayerHealth playerHealth;
+
+    [Header("=== SFX (FMOD) ===")]
+    [Tooltip("Son joué à l'apparition des warnings d'une nouvelle vague")]
+    public FMODUnity.EventReference waveWarningSFX;
 
     [Header("=== État (debug) ===")]
     [SerializeField] private int nextNoteIndex;
-    [SerializeField] private int nextWarningIndex;
+    [SerializeField] private int nextWaveWarningIndex;
     [SerializeField] private int activeEnemyCount;
+    [SerializeField] private int totalWaves;
 
     private BeatMapData currentMap;
     private List<EnemyBase> activeEnemies = new List<EnemyBase>();
+    private List<EnemyWave> waves = new List<EnemyWave>();
 
     private void Awake()
     {
@@ -48,12 +81,94 @@ public class EnemySpawnManager : MonoBehaviour
     {
         currentMap = map;
         nextNoteIndex = 0;
-        nextWarningIndex = 0;
+        nextWaveWarningIndex = 0;
         activeEnemies.Clear();
 
         if (currentMap.notes != null)
         {
             currentMap.notes.Sort((a, b) => a.beatTime.CompareTo(b.beatTime));
+        }
+
+        
+        if (playerHealth == null)
+        {
+            var player = FindFirstObjectByType<PlayerController>();
+            if (player != null)
+                playerHealth = player.health;
+        }
+
+        
+        DetectWaves();
+    }
+
+    
+    
+    
+    
+    private void DetectWaves()
+    {
+        waves.Clear();
+
+        if (currentMap == null || currentMap.notes == null || currentMap.notes.Count == 0)
+        {
+            totalWaves = 0;
+            return;
+        }
+
+        
+        float waveGapBeats = waveGapSeconds / currentMap.SecondsPerBeat;
+
+        EnemyWave currentWave = new EnemyWave
+        {
+            waveIndex = 0,
+            startBeat = currentMap.notes[0].beatTime,
+            spawnerIndices = new List<int>(),
+            notes = new List<BeatNote>()
+        };
+
+        for (int i = 0; i < currentMap.notes.Count; i++)
+        {
+            BeatNote note = currentMap.notes[i];
+
+            
+            if (i > 0)
+            {
+                float gap = note.beatTime - currentMap.notes[i - 1].beatTime;
+                if (gap >= waveGapBeats)
+                {
+                    
+                    currentWave.endBeat = currentMap.notes[i - 1].beatTime;
+                    waves.Add(currentWave);
+
+                    
+                    currentWave = new EnemyWave
+                    {
+                        waveIndex = waves.Count,
+                        startBeat = note.beatTime,
+                        spawnerIndices = new List<int>(),
+                        notes = new List<BeatNote>()
+                    };
+                }
+            }
+
+            
+            currentWave.notes.Add(note);
+            if (!currentWave.spawnerIndices.Contains(note.spawnerIndex))
+                currentWave.spawnerIndices.Add(note.spawnerIndex);
+        }
+
+        
+        currentWave.endBeat = currentMap.notes[currentMap.notes.Count - 1].beatTime;
+        waves.Add(currentWave);
+
+        totalWaves = waves.Count;
+        Debug.Log($"EnemySpawnManager: {totalWaves} vagues détectées (gap = {waveGapSeconds}s = {waveGapBeats:F1} beats)");
+
+        for (int w = 0; w < waves.Count; w++)
+        {
+            var wave = waves[w];
+            Debug.Log($"  Vague {w + 1}: beats {wave.startBeat:F1} → {wave.endBeat:F1}, " +
+                $"{wave.notes.Count} notes, spawners: [{string.Join(", ", wave.spawnerIndices)}]");
         }
     }
 
@@ -74,31 +189,60 @@ public class EnemySpawnManager : MonoBehaviour
 
         float currentBeat = BeatManager.Instance.CurrentBeat;
 
-        ProcessWarnings(currentBeat);
+        ProcessWaveWarnings(currentBeat);
         ProcessSpawns(currentBeat);
         CleanupDeadEnemies();
 
         activeEnemyCount = activeEnemies.Count;
     }
 
-    private void ProcessWarnings(float currentBeat)
+    
+    
+    
+    
+    
+    private void ProcessWaveWarnings(float currentBeat)
     {
-        while (nextWarningIndex < currentMap.notes.Count)
+        while (nextWaveWarningIndex < waves.Count)
         {
-            BeatNote note = currentMap.notes[nextWarningIndex];
-            float warningBeat = note.beatTime - warningAheadBeats;
+            EnemyWave wave = waves[nextWaveWarningIndex];
+            float warningBeat = wave.startBeat - warningAheadBeats;
 
             if (currentBeat >= warningBeat)
             {
-                if (note.spawnerIndex >= 0 && note.spawnerIndex < spawners.Count)
+                
+                foreach (int spawnerIdx in wave.spawnerIndices)
                 {
-                    EnemyData data = GetEnemyDataForType(note.inputType);
-                    if (data != null)
+                    if (spawnerIdx >= 0 && spawnerIdx < spawners.Count)
                     {
-                        spawners[note.spawnerIndex].ShowWarning(data.warningColor);
+                        
+                        Color warningColor = Color.red;
+                        var firstNote = wave.notes.Find(n => n.spawnerIndex == spawnerIdx);
+                        if (firstNote != null)
+                        {
+                            EnemyData data = GetEnemyDataForType(firstNote.inputType);
+                            if (data != null)
+                                warningColor = data.warningColor;
+                        }
+
+                        
+                        float warningDuration = (wave.startBeat - lookAheadBeats - currentBeat)
+                            * currentMap.SecondsPerBeat;
+                        warningDuration = Mathf.Max(warningDuration, 1f); 
+
+                        spawners[spawnerIdx].ShowWarning(warningColor, warningDuration);
                     }
                 }
-                nextWarningIndex++;
+
+                if (!waveWarningSFX.IsNull && FMODAudioManager.Instance != null)
+                {
+                    FMODAudioManager.Instance.PlaySFX(waveWarningSFX);
+                }
+
+                Debug.Log($"EnemySpawnManager: ⚠ Warning vague {wave.waveIndex + 1} ! " +
+                    $"({wave.notes.Count} ennemis sur spawners [{string.Join(", ", wave.spawnerIndices)}])");
+
+                nextWaveWarningIndex++;
             }
             else
             {
@@ -149,8 +293,6 @@ public class EnemySpawnManager : MonoBehaviour
             enemy.OnEnemyExploded += HandleEnemyExploded;
             activeEnemies.Add(enemy);
         }
-
-        spawner.HideWarning();
     }
 
     private EnemyData GetEnemyDataForType(EnemyInputType inputType)
@@ -166,9 +308,9 @@ public class EnemySpawnManager : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// Quand un ennemi explose naturellement (pas tué par le joueur) = miss.
-    /// </summary>
+    
+    
+    
     private void HandleEnemyExploded(EnemyBase enemy)
     {
         if (ScoreManager.Instance != null)
@@ -177,11 +319,10 @@ public class EnemySpawnManager : MonoBehaviour
         if (TimingFeedbackUI.Instance != null)
             TimingFeedbackUI.Instance.ShowFeedback(TimingResult.Miss, enemy.transform.position);
 
-        // Dégâts au joueur
-        PlayerController player = FindFirstObjectByType<PlayerController>();
-        if (player != null && player.health != null && enemy.data != null)
+        
+        if (playerHealth != null && enemy.data != null)
         {
-            player.health.TakeDamage(enemy.data.damage);
+            playerHealth.TakeDamage(enemy.data.damage);
         }
     }
 
@@ -190,10 +331,9 @@ public class EnemySpawnManager : MonoBehaviour
         activeEnemies.RemoveAll(e => e == null);
     }
 
-    /// <summary>
-    /// Trouve l'ennemi le plus proche du joueur, DANS N'IMPORTE QUEL ÉTAT (Moving ou Vulnerable).
-    /// Le joueur peut frapper à tout moment.
-    /// </summary>
+    
+    
+    
     public EnemyBase GetClosestEnemy(Vector3 playerPosition, EnemyInputType inputType, float maxRange)
     {
         EnemyBase closest = null;
@@ -205,7 +345,6 @@ public class EnemySpawnManager : MonoBehaviour
             if (enemy.CurrentState == EnemyBase.EnemyState.Dead ||
                 enemy.CurrentState == EnemyBase.EnemyState.Exploding) continue;
 
-            // Vérifier le type d'input
             if (enemy.RequiredInput != EnemyInputType.Any &&
                 enemy.RequiredInput != inputType &&
                 inputType != EnemyInputType.Any) continue;
@@ -223,9 +362,6 @@ public class EnemySpawnManager : MonoBehaviour
         return closest;
     }
 
-    /// <summary>
-    /// Ancienne méthode pour compatibilité. Redirige vers GetClosestEnemy.
-    /// </summary>
     public EnemyBase GetClosestVulnerableEnemy(Vector3 playerPosition, EnemyInputType inputType)
     {
         return GetClosestEnemy(playerPosition, inputType, 999f);

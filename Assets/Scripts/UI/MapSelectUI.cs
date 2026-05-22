@@ -5,11 +5,11 @@ using TMPro;
 using System.IO;
 using System.Collections.Generic;
 
-/// <summary>
-/// Panneau de sélection des beatmaps.
-/// Affiche une liste verticale scrollable de cartes d'info (nom map, musique, BPM, highscore, bouton play).
-/// Se refresh à chaque ouverture via RefreshMapList().
-/// </summary>
+
+
+
+
+
 public class MapSelectUI : MonoBehaviour
 {
     [Header("=== Références ScrollView ===")]
@@ -28,21 +28,21 @@ public class MapSelectUI : MonoBehaviour
     public Color cardHoverColor = new Color(0.18f, 0.18f, 0.32f, 1f);
     public Color playButtonColor = new Color(0.2f, 0.75f, 0.4f, 1f);
 
-    // === Données internes ===
+    
     private List<BeatMapData> loadedMaps = new List<BeatMapData>();
 
     private void OnEnable()
     {
-        // Refresh automatique à chaque ouverture du panel
+        
         RefreshMapList();
     }
 
-    /// <summary>
-    /// Scanne le dossier BeatMaps/ et crée une carte UI pour chaque fichier JSON trouvé.
-    /// </summary>
+    
+    
+    
     public void RefreshMapList()
     {
-        // 1. Nettoyer la liste existante
+        
         if (mapListContent != null)
         {
             foreach (Transform child in mapListContent)
@@ -51,7 +51,7 @@ public class MapSelectUI : MonoBehaviour
 
         loadedMaps.Clear();
 
-        // 2. Créer le dossier s'il n'existe pas
+        
         string beatMapDir = Path.Combine(Application.persistentDataPath, "BeatMaps");
         if (!Directory.Exists(beatMapDir))
         {
@@ -60,7 +60,7 @@ public class MapSelectUI : MonoBehaviour
             return;
         }
 
-        // 3. Scanner les fichiers JSON
+        
         string[] files = Directory.GetFiles(beatMapDir, "*.json");
 
         if (files.Length == 0)
@@ -70,7 +70,7 @@ public class MapSelectUI : MonoBehaviour
             return;
         }
 
-        // 4. Charger et créer une carte pour chaque beatmap
+        
         foreach (string file in files)
         {
             try
@@ -93,30 +93,31 @@ public class MapSelectUI : MonoBehaviour
         Debug.Log($"MapSelectUI: {loadedMaps.Count} beatmaps chargées.");
     }
 
-    /// <summary>
-    /// Crée une carte d'information pour une beatmap dans la liste.
-    /// Affiche : nom de la map, nom de la musique, BPM, highscore, bouton PLAY.
-    /// </summary>
+    
+    
+    
+    
     private void CreateMapCard(BeatMapData map)
     {
         if (mapListContent == null) return;
 
-        // === Container principal de la carte ===
-        GameObject card = new GameObject($"MapCard_{map.songName}");
+        
+        string cardObjName = string.IsNullOrEmpty(map.mapName) ? "Map_sans_nom" : map.mapName;
+        GameObject card = new GameObject($"MapCard_{cardObjName}");
         card.transform.SetParent(mapListContent, false);
 
-        // RectTransform + LayoutElement pour le ScrollView
+        
         RectTransform cardRect = card.AddComponent<RectTransform>();
         LayoutElement layoutElem = card.AddComponent<LayoutElement>();
         layoutElem.minHeight = 90;
         layoutElem.preferredHeight = 90;
         layoutElem.flexibleWidth = 1;
 
-        // Background de la carte
+        
         Image cardBg = card.AddComponent<Image>();
         cardBg.color = cardColor;
 
-        // HorizontalLayoutGroup pour disposer texte + bouton côte à côte
+        
         HorizontalLayoutGroup hLayout = card.AddComponent<HorizontalLayoutGroup>();
         hLayout.padding = new RectOffset(15, 15, 10, 10);
         hLayout.spacing = 10;
@@ -126,7 +127,7 @@ public class MapSelectUI : MonoBehaviour
         hLayout.childForceExpandWidth = true;
         hLayout.childForceExpandHeight = false;
 
-        // === Zone de texte (gauche) ===
+        
         GameObject textZone = new GameObject("TextZone");
         textZone.transform.SetParent(card.transform, false);
         RectTransform textRect = textZone.AddComponent<RectTransform>();
@@ -142,21 +143,22 @@ public class MapSelectUI : MonoBehaviour
         vLayout.childForceExpandWidth = true;
         vLayout.childForceExpandHeight = false;
 
-        // Ligne 1 : Nom de la map (gros, blanc)
-        CreateTextLine(textZone.transform, map.songName, 22, Color.white, FontStyles.Bold);
+        
+        string displayMapName = string.IsNullOrEmpty(map.mapName) ? "Map sans nom" : map.mapName;
+        CreateTextLine(textZone.transform, displayMapName, 22, Color.white, FontStyles.Bold);
 
-        // Ligne 2 : Nom de la musique (FMOD event path simplifié)
-        string musicName = ExtractMusicName(map.fmodEventPath);
+        
+        string musicName = !string.IsNullOrEmpty(map.songName) ? map.songName : ExtractMusicName(map.fmodEventPath);
         CreateTextLine(textZone.transform, $"♪ {musicName}", 16, new Color(0.7f, 0.7f, 0.85f));
 
-        // Ligne 3 : BPM + nb de notes + highscore
-        int highscore = LoadHighScore(map.songName);
+        
+        int highscore = LoadHighScore(displayMapName);
         string details = $"{map.bpm} BPM  •  {map.notes?.Count ?? 0} notes";
         if (highscore > 0)
             details += $"  •  HS: {highscore:N0}";
         CreateTextLine(textZone.transform, details, 14, new Color(0.5f, 0.5f, 0.6f));
 
-        // === Bouton PLAY (droite) ===
+        
         GameObject playBtnGO = new GameObject("PlayButton");
         playBtnGO.transform.SetParent(card.transform, false);
 
@@ -170,7 +172,7 @@ public class MapSelectUI : MonoBehaviour
 
         Button playBtn = playBtnGO.AddComponent<Button>();
 
-        // Texte "▶" sur le bouton
+        
         GameObject btnTextGO = new GameObject("BtnText");
         btnTextGO.transform.SetParent(playBtnGO.transform, false);
         TextMeshProUGUI btnText = btnTextGO.AddComponent<TextMeshProUGUI>();
@@ -184,11 +186,11 @@ public class MapSelectUI : MonoBehaviour
         btnTextRect.offsetMin = Vector2.zero;
         btnTextRect.offsetMax = Vector2.zero;
 
-        // Callback du bouton : lance la partie avec cette map
+        
         BeatMapData capturedMap = map;
         playBtn.onClick.AddListener(() => LaunchMap(capturedMap));
 
-        // Hover color
+        
         ColorBlock colors = playBtn.colors;
         colors.normalColor = playButtonColor;
         colors.highlightedColor = new Color(0.25f, 0.85f, 0.5f, 1f);
@@ -196,9 +198,9 @@ public class MapSelectUI : MonoBehaviour
         playBtn.colors = colors;
     }
 
-    /// <summary>
-    /// Crée une ligne de texte TMP dans un parent.
-    /// </summary>
+    
+    
+    
     private void CreateTextLine(Transform parent, string text, float fontSize, Color color, FontStyles style = FontStyles.Normal)
     {
         GameObject go = new GameObject("Text");
@@ -217,9 +219,9 @@ public class MapSelectUI : MonoBehaviour
         le.preferredHeight = fontSize + 6;
     }
 
-    /// <summary>
-    /// Extrait un nom lisible depuis un path FMOD (ex: "event:/Music/NeonRush" → "NeonRush").
-    /// </summary>
+    
+    
+    
     private string ExtractMusicName(string fmodEventPath)
     {
         if (string.IsNullOrEmpty(fmodEventPath)) return "Aucune musique";
@@ -227,18 +229,21 @@ public class MapSelectUI : MonoBehaviour
         return lastSlash >= 0 ? fmodEventPath.Substring(lastSlash + 1) : fmodEventPath;
     }
 
-    /// <summary>
-    /// Charge le highscore sauvegardé pour une map via PlayerPrefs.
-    /// </summary>
-    private int LoadHighScore(string mapName)
+    
+    
+    
+    public static int GetHighScore(string mapName)
     {
+        if (string.IsNullOrEmpty(mapName)) return 0;
         string key = $"HighScore_{mapName.Replace(" ", "_")}";
         return PlayerPrefs.GetInt(key, 0);
     }
 
-    /// <summary>
-    /// Sauvegarde un highscore (appelé depuis GameManager à la fin de partie).
-    /// </summary>
+    private int LoadHighScore(string mapName) => GetHighScore(mapName);
+
+    
+    
+    
     public static void SaveHighScore(string mapName, int score)
     {
         string key = $"HighScore_{mapName.Replace(" ", "_")}";
@@ -250,18 +255,18 @@ public class MapSelectUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Lance la scène Game avec la beatmap sélectionnée.
-    /// </summary>
+    
+    
+    
     private void LaunchMap(BeatMapData map)
     {
         GameManager.SelectedBeatMap = map;
         SceneManager.LoadScene("Game");
     }
 
-    /// <summary>
-    /// Affiche un message quand aucune beatmap n'est trouvée.
-    /// </summary>
+    
+    
+    
     private void CreateEmptyMessage()
     {
         if (mapListContent == null) return;

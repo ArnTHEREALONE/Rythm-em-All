@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Panel d'options : Volume (master, musique, SFX) via FMOD Bus.
-/// Plus de bouton "ouvrir dossier musique".
-/// </summary>
+
+
+
+
 public class OptionsUI : MonoBehaviour
 {
     [Header("=== Volume Sliders ===")]
@@ -32,7 +32,7 @@ public class OptionsUI : MonoBehaviour
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         }
 
-        // Appliquer les volumes sauvegardés
+        
         ApplyVolumes();
     }
 
@@ -54,9 +54,9 @@ public class OptionsUI : MonoBehaviour
         ApplyVolumes();
     }
 
-    /// <summary>
-    /// Applique les volumes via FMOD Bus.
-    /// </summary>
+    
+    
+    
     private void ApplyVolumes()
     {
         if (FMODAudioManager.Instance != null)

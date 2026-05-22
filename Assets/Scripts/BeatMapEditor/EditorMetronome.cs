@@ -1,10 +1,10 @@
 using UnityEngine;
 using FMODUnity;
 
-/// <summary>
-/// Métronome pour l'éditeur de beatmap.
-/// Joue des sons FMOD one-shot sur chaque beat.
-/// </summary>
+
+
+
+
 public class EditorMetronome : MonoBehaviour
 {
     [Header("=== SFX FMOD ===")]
@@ -23,9 +23,9 @@ public class EditorMetronome : MonoBehaviour
 
     private int lastPlayedBeat = -1;
 
-    /// <summary>
-    /// Mise à jour du beat actuel. Appelé par BeatMapEditor.
-    /// </summary>
+    
+    
+    
     public void UpdateBeat(float currentBeat)
     {
         if (!isEnabled) return;
@@ -39,14 +39,14 @@ public class EditorMetronome : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Joue le son de clic via FMOD.
-    /// </summary>
+    
+    
+    
     private void PlayClick(int beatNumber)
     {
         EventReference clip;
 
-        // Temps fort (premier beat de la mesure)
+        
         if (beatNumber % beatsPerMeasure == 0 && !metronomeAccent.IsNull)
             clip = metronomeAccent;
         else
@@ -58,9 +58,9 @@ public class EditorMetronome : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Reset le compteur (quand on seek dans la timeline).
-    /// </summary>
+    
+    
+    
     public void ResetBeat()
     {
         lastPlayedBeat = -1;

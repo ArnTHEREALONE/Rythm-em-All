@@ -17,7 +17,8 @@ MonoBehaviour:
   dashCooldown: 1
   maxHP: 100
   healOnKill: 5
-  passiveHealRate: 1
-  passiveHealDelay: 3
-  damageOnMiss: 25
-  damageOnTooSoon: 25
+  passiveHealRate: 3
+  passiveHealDelay: 5
+  damageOnMiss: 33
+  damageOnTooSoon: 20
+  damageOnTooLate: 33

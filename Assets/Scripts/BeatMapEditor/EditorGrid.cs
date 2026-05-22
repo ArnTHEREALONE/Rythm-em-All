@@ -4,12 +4,12 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
 
-/// <summary>
-/// Grille de l'éditeur : affiche les notes sur la timeline.
-/// Les notes sont des ronds colorés 2D positionnés sur une grille
-/// lanes (horizontal) × beats (vertical), avec drag & drop snappé.
-/// </summary>
-public class EditorGrid : MonoBehaviour
+
+
+
+
+
+public class EditorGrid : MonoBehaviour, IPointerClickHandler
 {
     [Header("=== Configuration ===")]
     [Tooltip("Nombre de lanes (= nombre de spawners, doit correspondre à BeatMapEditor.laneCount)")]
@@ -34,6 +34,9 @@ public class EditorGrid : MonoBehaviour
     public Color colorStrongBeatLine = new Color(1f, 1f, 1f, 0.35f);
     public Color colorLaneLine = new Color(1f, 1f, 1f, 0.08f);
 
+    [Tooltip("Couleur de la ligne de fin de map")]
+    public Color colorEndMarker = new Color(1f, 0.2f, 0.2f, 0.9f);
+
     [Header("=== Note Visuel ===")]
     [Tooltip("Diamètre du rond de note en pixels")]
     public float noteDiameter = 28f;
@@ -41,8 +44,9 @@ public class EditorGrid : MonoBehaviour
     private List<GameObject> noteVisuals = new List<GameObject>();
     private List<GameObject> gridLines = new List<GameObject>();
     private GameObject cursorVisual;
+    private GameObject endMarkerVisual;
 
-    // Drag state
+    
     private BeatNote draggedNote;
     private GameObject draggedVisual;
 
@@ -66,6 +70,7 @@ public class EditorGrid : MonoBehaviour
         float endBeat = currentBeat + visibleBeats * 3f / 4f;
 
         DrawGridLines(startBeat, endBeat);
+        DrawEndMarker(startBeat, endBeat);
 
         foreach (var note in map.notes)
         {
@@ -81,10 +86,10 @@ public class EditorGrid : MonoBehaviour
         UpdateCursor(currentBeat, startBeat, endBeat);
     }
 
-    /// <summary>
-    /// Dessine les lignes de la grille : lignes de lanes (horizontales)
-    /// et lignes de beats (verticales).
-    /// </summary>
+    
+    
+    
+    
     private void DrawGridLines(float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -92,14 +97,14 @@ public class EditorGrid : MonoBehaviour
         float gridWidth = gridArea.rect.width;
         float gridHeight = gridArea.rect.height;
 
-        // 12 lignes horizontales de lanes
+        
         for (int i = 0; i <= laneCount; i++)
         {
             float x = (float)i / laneCount * gridWidth - gridWidth / 2f;
             CreateLine(new Vector2(x, -gridHeight / 2f), new Vector2(x, gridHeight / 2f), colorLaneLine, 1f);
         }
 
-        // Lignes de beats verticales
+        
         int startBeatInt = Mathf.FloorToInt(startBeat);
         int endBeatInt = Mathf.CeilToInt(endBeat);
 
@@ -144,6 +149,42 @@ public class EditorGrid : MonoBehaviour
         gridLines.Add(lineGO);
     }
 
+    private void DrawEndMarker(float startBeat, float endBeat)
+    {
+        if (gridArea == null || BeatMapEditor.Instance == null) return;
+        if (!BeatMapEditor.Instance.HasEndBeat) return;
+
+        float markerBeat = BeatMapEditor.Instance.EndBeat;
+        if (markerBeat < startBeat || markerBeat > endBeat) return;
+
+        float gridWidth = gridArea.rect.width;
+        float gridHeight = gridArea.rect.height;
+        float beatRange = endBeat - startBeat;
+        float normalizedBeat = (markerBeat - startBeat) / beatRange;
+        float y = (normalizedBeat - 0.5f) * gridHeight;
+
+        // Ligne rouge épaisse
+        CreateLine(
+            new Vector2(-gridWidth / 2f, y),
+            new Vector2(gridWidth / 2f, y),
+            colorEndMarker, 3f
+        );
+
+        // Label "FIN – beat XX"
+        GameObject labelGO = new GameObject("EndMarkerLabel");
+        labelGO.transform.SetParent(gridArea, false);
+        var tmp = labelGO.AddComponent<TMPro.TextMeshProUGUI>();
+        tmp.text = $"⏹ FIN – beat {Mathf.RoundToInt(markerBeat)}";
+        tmp.fontSize = 14;
+        tmp.color = colorEndMarker;
+        tmp.fontStyle = TMPro.FontStyles.Bold;
+        tmp.raycastTarget = false;
+        var lRect = labelGO.GetComponent<RectTransform>();
+        lRect.anchoredPosition = new Vector2(-gridWidth / 2f + 8f, y + 8f);
+        lRect.sizeDelta = new Vector2(200f, 20f);
+        gridLines.Add(labelGO);
+    }
+
     private void CreateNoteVisual(BeatNote note, float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -155,14 +196,14 @@ public class EditorGrid : MonoBehaviour
         }
         else
         {
-            // Créer un rond (cercle) programmatiquement
+            
             noteGO = new GameObject($"Note_{note.beatTime}_{note.spawnerIndex}");
             noteGO.transform.SetParent(gridArea, false);
             var img = noteGO.AddComponent<Image>();
             img.color = GetColorForInputType(note.inputType);
 
-            // Rendre rond : utiliser un sprite circulaire si disponible,
-            // sinon utiliser la forme carrée (le prefab NoteCircle est recommandé)
+            
+            
             var rect = noteGO.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(noteDiameter, noteDiameter);
         }
@@ -173,16 +214,16 @@ public class EditorGrid : MonoBehaviour
         if (image != null)
             image.color = GetColorForInputType(note.inputType);
 
-        // Ajouter le drag handler pour le drag & drop
+        
         var dragHandler = noteGO.AddComponent<EditorNoteDragHandler>();
         dragHandler.Initialize(note, this);
 
         noteVisuals.Add(noteGO);
     }
 
-    /// <summary>
-    /// Positionne un GameObject dans la grille selon lane et beat.
-    /// </summary>
+    
+    
+    
     public void PositionInGrid(GameObject go, int lane, float beat, float startBeat, float endBeat)
     {
         if (gridArea == null) return;
@@ -203,10 +244,10 @@ public class EditorGrid : MonoBehaviour
         rect.anchoredPosition = new Vector2(x, y);
     }
 
-    /// <summary>
-    /// Convertit une position UI en coordonnées grille (lane, beat).
-    /// Utilisé par le drag & drop pour snapper.
-    /// </summary>
+    
+    
+    
+    
     public (int lane, float beat) ScreenToGrid(Vector2 localPosition)
     {
         if (gridArea == null) return (0, 0);
@@ -218,7 +259,7 @@ public class EditorGrid : MonoBehaviour
         float startBeat = currentBeat - visibleBeats / 4f;
         float endBeat = currentBeat + visibleBeats * 3f / 4f;
 
-        // Inverse de PositionInGrid
+        
         float laneWidth = gridWidth / laneCount;
         int lane = Mathf.Clamp(Mathf.FloorToInt((localPosition.x + gridWidth / 2f) / laneWidth), 0, laneCount - 1);
 
@@ -227,6 +268,23 @@ public class EditorGrid : MonoBehaviour
         float snappedBeat = Mathf.Round(beat);
 
         return (lane, snappedBeat);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (BeatMapEditor.Instance == null) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(gridArea, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
+        var (lane, beat) = ScreenToGrid(localPoint);
+
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            BeatMapEditor.Instance.DeleteNoteAt(beat, lane);
+        }
+        else if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            BeatMapEditor.Instance.PlaceNoteAt(beat, lane, EnemyInputType.Any);
+        }
     }
 
     private void UpdateCursor(float currentBeat, float startBeat, float endBeat)

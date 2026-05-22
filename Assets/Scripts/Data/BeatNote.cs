@@ -2,11 +2,11 @@ using UnityEngine;
 
 public enum EnemyInputType
 {
-    Any,        // Space — ennemi simple, n'importe quel input
-    LeftOnly,   // Action gauche uniquement
-    RightOnly,  // Action droite uniquement
-    Both,       // Gauche + droite en même temps
-    Spam        // Clics multiples rapides
+    Any,        
+    LeftOnly,   
+    RightOnly,  
+    Both,       
+    Spam        
 }
 
 [System.Serializable]

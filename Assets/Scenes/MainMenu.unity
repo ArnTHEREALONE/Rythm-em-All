@@ -1566,6 +1566,13 @@ MonoBehaviour:
   quitButton: {fileID: 314213325}
   mapSelectBackButton: {fileID: 1737011017}
   optionsBackButton: {fileID: 1827983657}
+  mainMenuMusic:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!1 &786923840
 GameObject:
   m_ObjectHideFlags: 0
@@ -2858,6 +2865,7 @@ GameObject:
   - component: {fileID: 1493649627}
   - component: {fileID: 1493649626}
   - component: {fileID: 1493649628}
+  - component: {fileID: 1493649629}
   m_Layer: 5
   m_Name: Editor
   m_TagString: Untagged
@@ -2979,6 +2987,32 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1493649629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1493649624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee932a192935b4444a84c30ccb49a9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFmodFeedback
+  hoverSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  clickSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!1 &1512226292
 GameObject:
   m_ObjectHideFlags: 0
@@ -3751,6 +3785,7 @@ GameObject:
   - component: {fileID: 1817239759}
   - component: {fileID: 1817239758}
   - component: {fileID: 1817239760}
+  - component: {fileID: 1817239761}
   m_Layer: 5
   m_Name: Play
   m_TagString: Untagged
@@ -3872,6 +3907,32 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1817239761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817239756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee932a192935b4444a84c30ccb49a9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFmodFeedback
+  hoverSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  clickSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!1 &1822062638
 GameObject:
   m_ObjectHideFlags: 0
@@ -3974,6 +4035,7 @@ GameObject:
   - component: {fileID: 1827983659}
   - component: {fileID: 1827983658}
   - component: {fileID: 1827983657}
+  - component: {fileID: 1827983661}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -4083,6 +4145,32 @@ RectTransform:
   m_AnchoredPosition: {x: -374, y: 190}
   m_SizeDelta: {x: 30, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1827983661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827983656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee932a192935b4444a84c30ccb49a9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFmodFeedback
+  hoverSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  clickSFX:
+    Guid:
+      Data1: -1806167570
+      Data2: 1269793232
+      Data3: 2068164773
+      Data4: 1689961827
+    Path: event:/SFX/576585__nezuai__cartoon-zip-1
 --- !u!1 &1828978375
 GameObject:
   m_ObjectHideFlags: 0

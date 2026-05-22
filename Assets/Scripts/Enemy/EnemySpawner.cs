@@ -36,11 +36,12 @@ public class EnemySpawner : MonoBehaviour
         return enemy;
     }
 
-    public void ShowWarning(Color color)
+    public void ShowWarning(Color color, float duration = -1f)
     {
         if (warningIndicator != null)
         {
-            warningIndicator.Show(color, warningDuration);
+            float actualDuration = duration > 0 ? duration : warningDuration;
+            warningIndicator.Show(color, actualDuration);
         }
     }
 

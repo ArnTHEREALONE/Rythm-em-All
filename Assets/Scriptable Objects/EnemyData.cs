@@ -38,4 +38,11 @@ public class EnemyData : ScriptableObject
     [Header("=== Spam (si requiredInput == Spam) ===")]
     public int spamClicksRequired = 5;
     public float spamWindowDuration = 1f;
+
+    [Header("=== SFX (FMOD) ===")]
+    [Tooltip("Son joué quand l'ennemi est tué par le joueur")]
+    public FMODUnity.EventReference deathByPlayerSFX;
+
+    [Tooltip("Son joué quand l'ennemi s'auto-détruit (inflige des dégâts)")]
+    public FMODUnity.EventReference deathNaturalSFX;
 }

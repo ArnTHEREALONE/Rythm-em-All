@@ -2,12 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Contrôles de transport de l'éditeur de beatmap.
-/// 5 boutons : -2 beats, -1 beat, play/pause, +1 beat, +2 beats.
-/// Gère aussi les raccourcis clavier pour la navigation dans la grille
-/// et le placement de notes.
-/// </summary>
+
+
+
+
+
+
 public class EditorControls : MonoBehaviour
 {
     [Header("=== Boutons de transport ===")]
@@ -32,13 +32,23 @@ public class EditorControls : MonoBehaviour
     [Header("=== Métronome ===")]
     public Toggle metronomeToggle;
 
-    [Header("=== Retour Menu ===")]
-    [Tooltip("Bouton en haut à gauche pour revenir au menu principal")]
+    [Header("=== Marqueur de Fin ===")]
+    [Tooltip("Bouton pour placer la fin de la map au beat actuel")]
+    public Button setEndBeatButton;
+
+    [Tooltip("Bouton pour effacer le marqueur de fin")]
+    public Button clearEndBeatButton;
+
+    [Tooltip("Texte affiché sur le bouton pour indiquer si un end beat est défini")]
+    public TextMeshProUGUI endBeatStatusText;
+
+    [Header("=== Navigation ===")]
+    [Tooltip("Bouton pour revenir au menu principal")]
     public Button backToMenuButton;
 
     private void Start()
     {
-        // Navigation transport
+        
         if (prevTwoBeatsButton != null)
             prevTwoBeatsButton.onClick.AddListener(() => OnMoveBeat(-2f));
         if (prevBeatButton != null)
@@ -50,27 +60,32 @@ public class EditorControls : MonoBehaviour
         if (nextTwoBeatsButton != null)
             nextTwoBeatsButton.onClick.AddListener(() => OnMoveBeat(2f));
 
-        // Métronome
+        
         if (metronomeToggle != null)
         {
             metronomeToggle.onValueChanged.AddListener(OnMetronomeToggled);
         }
 
-        // Retour menu
+        
         if (backToMenuButton != null)
         {
             backToMenuButton.onClick.AddListener(OnBackToMenu);
         }
+
+        // Marqueur de fin
+        if (setEndBeatButton != null)
+            setEndBeatButton.onClick.AddListener(() => BeatMapEditor.Instance?.SetEndBeatAtCursor());
+        if (clearEndBeatButton != null)
+            clearEndBeatButton.onClick.AddListener(() => BeatMapEditor.Instance?.ClearEndBeat());
     }
 
     private void Update()
     {
         if (BeatMapEditor.Instance == null) return;
 
-        // Pas de raccourcis clavier pendant la lecture
+        
         if (!BeatMapEditor.Instance.IsPlaying)
         {
-            // Navigation grille (ZQSD)
             if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.W))
                 OnMoveBeat(1f);
             if (Input.GetKeyDown(KeyCode.S))
@@ -79,31 +94,49 @@ public class EditorControls : MonoBehaviour
                 BeatMapEditor.Instance.MoveLane(1);
             if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.A))
                 BeatMapEditor.Instance.MoveLane(-1);
-
-            // Placement de notes
-            if (Input.GetKeyDown(KeyCode.Space))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.LeftOnly);
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.RightOnly);
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Both);
-            if (Input.GetKeyDown(KeyCode.Alpha4))
-                BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
-
-            // Suppression
-            if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
-                BeatMapEditor.Instance.DeleteNoteAtCursor();
         }
 
-        // Play/Pause (toujours actif)
+        
+        if (Input.GetKeyDown(KeyCode.Space))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Any);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.LeftOnly);
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.RightOnly);
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Both);
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+            BeatMapEditor.Instance.PlaceNote(EnemyInputType.Spam);
+
+        
+        if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
+            BeatMapEditor.Instance.DeleteNoteAtCursor();
+
+        // E = poser/effacer le marqueur de fin
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (BeatMapEditor.Instance.HasEndBeat)
+                BeatMapEditor.Instance.ClearEndBeat();
+            else
+                BeatMapEditor.Instance.SetEndBeatAtCursor();
+        }
+
+        
         if (Input.GetKeyDown(KeyCode.P))
             OnPlayPause();
 
-        // Mise à jour du texte play/pause
+        
         if (playPauseText != null)
             playPauseText.text = BeatMapEditor.Instance.IsPlaying ? "⏸" : "▶";
+
+        // Afficher le statut du marqueur de fin
+        if (endBeatStatusText != null)
+        {
+            if (BeatMapEditor.Instance.HasEndBeat)
+                endBeatStatusText.text = $"Fin: beat {Mathf.RoundToInt(BeatMapEditor.Instance.EndBeat)}";
+            else
+                endBeatStatusText.text = "Fin: non définie";
+        }
     }
 
     private void OnPlayPause()
