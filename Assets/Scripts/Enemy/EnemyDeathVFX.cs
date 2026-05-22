@@ -52,14 +52,7 @@ public class EnemyDeathVFX : MonoBehaviour
         // Spawn death particles
         if (deathByPlayerParticlesPrefab != null)
         {
-            ParticleSystem ps = Instantiate(deathByPlayerParticlesPrefab, spawnPos, Quaternion.identity);
-
-            // Tint particles to match the enemy's renderer color
-            if (enemy.mainRenderer != null)
-            {
-                var main = ps.main;
-                main.startColor = enemy.mainRenderer.material.color;
-            }
+            ParticleSystem ps = Instantiate(deathByPlayerParticlesPrefab, spawnPos, Quaternion.Euler(-90,0,0));
         }
 
         // Show timing feedback

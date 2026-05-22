@@ -16,7 +16,7 @@ MonoBehaviour:
   prefab: {fileID: 656975314614994843, guid: f52707cc8830d5a439777177db272b96, type: 3}
   hitPoints: 1
   baseMoveSpeed: 3
-  damage: 1
+  damage: 30
   requiredInput: 0
   lifetimeMinBeats: 2
   lifetimeMaxBeats: 2

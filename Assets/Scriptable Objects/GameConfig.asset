@@ -20,7 +20,7 @@ MonoBehaviour:
   scoreMultiplierBase: 1
   scoreMultiplierIncrementPerfect: 0.2
   scoreMultiplierIncrementGood: 0.1
-  scoreMultiplierMax: 999
+  scoreMultiplierMax: 99999
   scoreMultiplierOnMiss: 1
   baseGameSpeed: 1
   speedPerScoreMultiplier: 0.25
@@ -30,5 +30,6 @@ MonoBehaviour:
   cooldownSpeedFactor: 1
   perfectWindow: 0.05
   goodWindow: 0.12
-  tooSoonWindow: 0.25
-  tooLateWindow: 0.25
+  tooSoonWindow: 0.2
+  tooLateWindow: 0.2
+  vulnerabilityBeatOffset: -0.25
