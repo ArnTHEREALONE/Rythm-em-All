@@ -26,11 +26,11 @@ MonoBehaviour:
   spamWindowDuration: 0
   deathByPlayerSFX:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 935474345
+      Data2: 1080713182
+      Data3: 480068795
+      Data4: -280621659
+    Path: event:/SFX/rubble-burst-sparkle-epic-stock-media-1-00-02
   deathNaturalSFX:
     Guid:
       Data1: 0
