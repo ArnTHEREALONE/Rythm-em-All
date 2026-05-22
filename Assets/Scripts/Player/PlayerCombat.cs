@@ -1,7 +1,7 @@
 using UnityEngine;
 using FMODUnity;
-using System.Collections;
 using System;
+
 
 /// <summary>
 /// Gère le combat du joueur : attaques gauche/droite, timing, SFX.
@@ -68,7 +68,10 @@ public class PlayerCombat : MonoBehaviour
 
     private void PerformAttack(EnemyInputType inputType)
     {
-        PlaySFX(attackSFX);
+        // Appel direct sans indirection singleton pour latence minimale
+        if (!attackSFX.IsNull)
+            RuntimeManager.PlayOneShot(attackSFX);
+
         OnAttackPerformed?.Invoke();
 
         if (EnemySpawnManager.Instance == null) return;
@@ -88,7 +91,7 @@ public class PlayerCombat : MonoBehaviour
         switch (result)
         {
             case TimingResult.Perfect:
-                PlaySFX(sfxPerfect);
+                if (!sfxPerfect.IsNull) RuntimeManager.PlayOneShot(sfxPerfect);
                 if (ScoreManager.Instance != null)
                     ScoreManager.Instance.RegisterHit(result);
                 if (playerHealth != null && enemy.CurrentHP <= 0)
@@ -98,7 +101,7 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.Good:
-                PlaySFX(sfxGood);
+                if (!sfxGood.IsNull) RuntimeManager.PlayOneShot(sfxGood);
                 if (ScoreManager.Instance != null)
                     ScoreManager.Instance.RegisterHit(result);
                 if (playerHealth != null && enemy.CurrentHP <= 0)
@@ -108,7 +111,7 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.TooSoon:
-                PlaySFX(sfxTooSoon);
+                if (!sfxTooSoon.IsNull) RuntimeManager.PlayOneShot(sfxTooSoon);
                 if (ScoreManager.Instance != null)
                     ScoreManager.Instance.RegisterMiss();
                 if (playerHealth != null)
@@ -121,7 +124,7 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.TooLate:
-                PlaySFX(sfxTooLate);
+                if (!sfxTooLate.IsNull) RuntimeManager.PlayOneShot(sfxTooLate);
                 if (ScoreManager.Instance != null)
                     ScoreManager.Instance.RegisterHit(result);
                 if (playerHealth != null)
@@ -134,16 +137,8 @@ public class PlayerCombat : MonoBehaviour
                 break;
 
             case TimingResult.Miss:
-                PlaySFX(sfxMiss);
+                if (!sfxMiss.IsNull) RuntimeManager.PlayOneShot(sfxMiss);
                 break;
-        }
-    }
-
-    private void PlaySFX(EventReference sfxEvent)
-    {
-        if (!sfxEvent.IsNull && FMODAudioManager.Instance != null)
-        {
-            FMODAudioManager.Instance.PlaySFX(sfxEvent);
         }
     }
 

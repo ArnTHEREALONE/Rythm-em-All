@@ -1,4 +1,5 @@
 using UnityEngine;
+using FMODUnity;
 using System;
 
 
@@ -265,10 +266,8 @@ public class EnemyBase : MonoBehaviour
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
 
-        if (data != null && !data.deathByPlayerSFX.IsNull && FMODAudioManager.Instance != null)
-        {
-            FMODAudioManager.Instance.PlaySFX(data.deathByPlayerSFX);
-        }
+        if (data != null && !data.deathByPlayerSFX.IsNull)
+            RuntimeManager.PlayOneShot(data.deathByPlayerSFX);
 
         OnEnemyKilled?.Invoke(this, result);
         Destroy(gameObject, 0.1f);
@@ -281,10 +280,8 @@ public class EnemyBase : MonoBehaviour
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
 
-        if (data != null && !data.deathNaturalSFX.IsNull && FMODAudioManager.Instance != null)
-        {
-            FMODAudioManager.Instance.PlaySFX(data.deathNaturalSFX);
-        }
+        if (data != null && !data.deathNaturalSFX.IsNull)
+            RuntimeManager.PlayOneShot(data.deathNaturalSFX);
 
         OnEnemyExploded?.Invoke(this);
         Destroy(gameObject, 0.3f);
