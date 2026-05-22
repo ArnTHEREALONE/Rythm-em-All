@@ -94,7 +94,11 @@ public class EnemyBase : MonoBehaviour
                 
                 UpdateBlinking(currentBeat);
 
-                if (currentBeat >= targetBeatTime)
+                float offset = 0f;
+                if (SpeedMultiplier.Instance != null && SpeedMultiplier.Instance.config != null)
+                    offset = SpeedMultiplier.Instance.config.vulnerabilityBeatOffset;
+
+                if (currentBeat >= targetBeatTime + offset)
                 {
                     BecomeVulnerable();
                 }

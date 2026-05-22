@@ -44,6 +44,10 @@ public class GameConfig : ScriptableObject
 
     public float tooLateWindow = 0.25f;
 
+    [Header("=== Timing Offset ===")]
+    [Tooltip("Décale le moment où l'ennemi devient vulnérable par rapport à son beat.\nValeur négative = devient vulnérable plus tôt.\nValeur positive = devient vulnérable plus tard.\nPar défaut : 0.")]
+    public float vulnerabilityBeatOffset = 0f;
+
     public float CalculateGameSpeed(float scoreMultiplier)
     {
         float rawSpeed = baseGameSpeed + (scoreMultiplier - 1f) * speedPerScoreMultiplier;
