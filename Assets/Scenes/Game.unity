@@ -5654,23 +5654,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4960253401516150143, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: attackSFX.Path
-      value: 
+      value: event:/SFX/taiko-drum-14
       objectReference: {fileID: 0}
     - target: {fileID: 4960253401516150143, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: attackSFX.Guid.Data1
-      value: 0
+      value: -1429256055
       objectReference: {fileID: 0}
     - target: {fileID: 4960253401516150143, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: attackSFX.Guid.Data2
-      value: 0
+      value: 1206646960
       objectReference: {fileID: 0}
     - target: {fileID: 4960253401516150143, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: attackSFX.Guid.Data3
-      value: 0
+      value: -977694018
       objectReference: {fileID: 0}
     - target: {fileID: 4960253401516150143, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: attackSFX.Guid.Data4
-      value: 0
+      value: 930082518
       objectReference: {fileID: 0}
     - target: {fileID: 5107898816876568930, guid: bf65bfbd334bb2c4d8b9d8d29c1c0b31, type: 3}
       propertyPath: m_Name
