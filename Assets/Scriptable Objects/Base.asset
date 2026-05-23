@@ -18,8 +18,8 @@ MonoBehaviour:
   baseMoveSpeed: 3
   damage: 30
   requiredInput: 0
-  lifetimeMinBeats: 2
-  lifetimeMaxBeats: 2
+  beatsBeforeVulnerable: 4
+  vulnerableWindowBeats: 0.5
   blinkBeatsBeforeVulnerable: 6
   warningColor: {r: 1, g: 0, b: 0, a: 1}
   spamClicksRequired: 0

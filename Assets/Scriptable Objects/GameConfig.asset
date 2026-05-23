@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   baseScorePerKill: 10
-  perfectScoreMultiplier: 2
-  goodScoreMultiplier: 1
+  perfectScoreMultiplier: 20
+  goodScoreMultiplier: 5
   tooLateScoreMultiplier: 0
   tooSoonScoreMultiplier: 0
   scoreMultiplierBase: 1
@@ -23,13 +23,13 @@ MonoBehaviour:
   scoreMultiplierMax: 99999
   scoreMultiplierOnMiss: 1
   baseGameSpeed: 1
-  speedPerScoreMultiplier: 0.25
+  speedPerScoreMultiplier: 0.2
   speedSoftCap: 1.5
-  speedHardCap: 2.5
+  speedHardCap: 2
   speedOnMiss: 1
   cooldownSpeedFactor: 1
   perfectWindow: 0.05
-  goodWindow: 0.12
-  tooSoonWindow: 0.2
-  tooLateWindow: 0.2
-  vulnerabilityBeatOffset: -2
+  goodWindow: 0.25
+  tooSoonWindow: 0
+  tooLateWindow: 0
+  vulnerabilityBeatOffset: -0.25
