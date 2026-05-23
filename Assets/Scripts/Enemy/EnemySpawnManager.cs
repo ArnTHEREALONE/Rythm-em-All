@@ -258,13 +258,20 @@ public class EnemySpawnManager : MonoBehaviour
         while (nextNoteIndex < currentMap.notes.Count)
         {
             BeatNote note = currentMap.notes[nextNoteIndex];
-            float spawnBeat = note.beatTime;
 
-            // Le spawn se déclenche au beat exact de la note (note.beatTime = spawnBeat).
-            // L'ennemi calcule lui-même son targetBeatTime = spawnBeat + data.beatsBeforeVulnerable.
-            if (currentBeat >= note.beatTime)
+            // On a besoin de l'EnemyData pour connaître beatsBeforeVulnerable
+            // afin de calculer le bon beat de spawn.
+            EnemyData data = GetEnemyDataForType(note.inputType);
+            float beatsBeforeVulnerable = data != null ? data.beatsBeforeVulnerable : 4f;
+
+            // Le spawn se déclenche AVANT le beat de la note :
+            // spawnBeat = note.beatTime - beatsBeforeVulnerable
+            // L'ennemi voyage pendant beatsBeforeVulnerable beats, puis devient vulnérable à note.beatTime.
+            float spawnBeat = note.beatTime - beatsBeforeVulnerable;
+
+            if (currentBeat >= spawnBeat)
             {
-                SpawnEnemyForNote(note);
+                SpawnEnemyForNote(note, data, spawnBeat);
                 nextNoteIndex++;
             }
             else
@@ -274,7 +281,7 @@ public class EnemySpawnManager : MonoBehaviour
         }
     }
 
-    private void SpawnEnemyForNote(BeatNote note)
+    private void SpawnEnemyForNote(BeatNote note, EnemyData data, float spawnBeat)
     {
         if (note.spawnerIndex < 0 || note.spawnerIndex >= spawners.Count)
         {
@@ -282,7 +289,6 @@ public class EnemySpawnManager : MonoBehaviour
             return;
         }
 
-        EnemyData data = GetEnemyDataForType(note.inputType);
         if (data == null)
         {
             Debug.LogWarning($"EnemySpawnManager: No EnemyData for input type {note.inputType}");
@@ -290,8 +296,9 @@ public class EnemySpawnManager : MonoBehaviour
         }
 
         EnemySpawner spawner = spawners[note.spawnerIndex];
-        // Passe note.beatTime comme spawnBeat : l'ennemi calcule son propre targetBeatTime.
-        EnemyBase enemy = spawner.SpawnEnemy(note, data, note.beatTime);
+        // spawnBeat = note.beatTime - data.beatsBeforeVulnerable
+        // EnemyBase.Initialize calculera targetBeatTime = spawnBeat + beatsBeforeVulnerable = note.beatTime
+        EnemyBase enemy = spawner.SpawnEnemy(note, data, spawnBeat);
 
         if (enemy != null)
         {
