@@ -548,6 +548,7 @@ GameObject:
   - component: {fileID: 314213324}
   - component: {fileID: 314213323}
   - component: {fileID: 314213325}
+  - component: {fileID: 314213326}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -669,6 +670,32 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &314213326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314213321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee932a192935b4444a84c30ccb49a9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFmodFeedback
+  hoverSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  clickSFX:
+    Guid:
+      Data1: 183915754
+      Data2: 1183816815
+      Data3: 883642498
+      Data4: 1387518499
+    Path: event:/Menu selection feedback
 --- !u!1 &381002631
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,6 +1725,7 @@ GameObject:
   - component: {fileID: 857749527}
   - component: {fileID: 857749526}
   - component: {fileID: 857749528}
+  - component: {fileID: 857749529}
   m_Layer: 5
   m_Name: Options
   m_TagString: Untagged
@@ -1819,6 +1847,32 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &857749529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857749524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee932a192935b4444a84c30ccb49a9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFmodFeedback
+  hoverSFX:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  clickSFX:
+    Guid:
+      Data1: 183915754
+      Data2: 1183816815
+      Data3: 883642498
+      Data4: 1387518499
+    Path: event:/Menu selection feedback
 --- !u!1 &871335387
 GameObject:
   m_ObjectHideFlags: 0
@@ -3008,11 +3062,11 @@ MonoBehaviour:
     Path: 
   clickSFX:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 183915754
+      Data2: 1183816815
+      Data3: 883642498
+      Data4: 1387518499
+    Path: event:/Menu selection feedback
 --- !u!1 &1512226292
 GameObject:
   m_ObjectHideFlags: 0
@@ -3928,11 +3982,11 @@ MonoBehaviour:
     Path: 
   clickSFX:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 183915754
+      Data2: 1183816815
+      Data3: 883642498
+      Data4: 1387518499
+    Path: event:/Menu selection feedback
 --- !u!1 &1822062638
 GameObject:
   m_ObjectHideFlags: 0

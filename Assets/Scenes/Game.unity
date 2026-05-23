@@ -1685,7 +1685,7 @@ MonoBehaviour:
   enemyDataRight: {fileID: 0}
   enemyDataBoth: {fileID: 0}
   enemyDataSpam: {fileID: 0}
-  lookAheadBeats: 5
+  lookAheadBeats: 3
   waveGapSeconds: 5
   warningAheadBeats: 3
   playerHealth: {fileID: 0}
