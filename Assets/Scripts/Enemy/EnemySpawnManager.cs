@@ -39,7 +39,9 @@ public class EnemySpawnManager : MonoBehaviour
     public EnemyData enemyDataSpam;
 
     [Header("=== Timing ===")]
-    [Tooltip("Combien de beats avant le targetBeat pour spawner l'ennemi")]
+    [Tooltip("[DÉPRÉCIÉ] Ce paramètre n'a plus d'effet sur le spawn.\n" +
+             "La durée avant le timing de vulnérabilité est maintenant définie par\n" +
+             "'Beats Before Vulnerable' sur chaque EnemyData (Scriptable Object).")]
     public float lookAheadBeats = 4f;
 
     [Header("=== Vagues ===")]
@@ -256,9 +258,11 @@ public class EnemySpawnManager : MonoBehaviour
         while (nextNoteIndex < currentMap.notes.Count)
         {
             BeatNote note = currentMap.notes[nextNoteIndex];
-            float spawnBeat = note.beatTime - lookAheadBeats;
+            float spawnBeat = note.beatTime;
 
-            if (currentBeat >= spawnBeat)
+            // Le spawn se déclenche au beat exact de la note (note.beatTime = spawnBeat).
+            // L'ennemi calcule lui-même son targetBeatTime = spawnBeat + data.beatsBeforeVulnerable.
+            if (currentBeat >= note.beatTime)
             {
                 SpawnEnemyForNote(note);
                 nextNoteIndex++;
@@ -286,6 +290,7 @@ public class EnemySpawnManager : MonoBehaviour
         }
 
         EnemySpawner spawner = spawners[note.spawnerIndex];
+        // Passe note.beatTime comme spawnBeat : l'ennemi calcule son propre targetBeatTime.
         EnemyBase enemy = spawner.SpawnEnemy(note, data, note.beatTime);
 
         if (enemy != null)

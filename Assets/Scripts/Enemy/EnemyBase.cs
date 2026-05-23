@@ -61,23 +61,21 @@ public class EnemyBase : MonoBehaviour
     
     
     
-    public void Initialize(EnemyData enemyData, float targetBeat)
+    public void Initialize(EnemyData enemyData, float spawnBeat)
     {
         data = enemyData;
-        targetBeatTime = targetBeat;
         currentHP = data.hitPoints;
         currentState = EnemyState.Moving;
         spamClickCount = 0;
         lastBlinkBeat = -1;
         blinkVisible = true;
 
-        
-        float lifetime = data.lifetimeMinBeats;
-        if (data.lifetimeMaxBeats > data.lifetimeMinBeats)
-        {
-            lifetime = UnityEngine.Random.Range(data.lifetimeMinBeats, data.lifetimeMaxBeats);
-        }
-        deathBeatTime = targetBeat + lifetime;
+        // Le beat de spawn (passé par le SpawnManager = note.beatTime) est le moment du SPAWN.
+        // Le timing de vulnérabilité est décalé de beatsBeforeVulnerable beats après.
+        targetBeatTime = spawnBeat + data.beatsBeforeVulnerable;
+
+        // L'auto-destruction se produit après la fenêtre de vulnérabilité.
+        deathBeatTime = targetBeatTime + data.vulnerableWindowBeats;
 
         if (vulnerableEffect != null)
             vulnerableEffect.SetActive(false);
@@ -165,9 +163,7 @@ public class EnemyBase : MonoBehaviour
         if (currentState == EnemyState.Dead || currentState == EnemyState.Exploding)
             return TimingResult.Miss;
 
-        
-
-        
+        // Vérifier le type d'input requis
         if (data.requiredInput != EnemyInputType.Any &&
             data.requiredInput != EnemyInputType.Spam)
         {
@@ -175,13 +171,13 @@ public class EnemyBase : MonoBehaviour
                 return TimingResult.Miss;
         }
 
-        
+        // Cas spam
         if (data.requiredInput == EnemyInputType.Spam && currentState == EnemyState.Vulnerable)
         {
             return HandleSpamHit();
         }
 
-        
+        // Calcul du timing
         float targetTime = BeatManager.Instance.BeatToSeconds(targetBeatTime);
         float hitTime = FMODAudioManager.Instance != null
             ? FMODAudioManager.Instance.GetTimelinePositionSeconds()
@@ -194,25 +190,23 @@ public class EnemyBase : MonoBehaviour
         }
         else
         {
-            result = currentState == EnemyState.Vulnerable ? TimingResult.Good : TimingResult.TooSoon;
+            // Fallback : si vulnérable = Good, sinon Miss
+            result = currentState == EnemyState.Vulnerable ? TimingResult.Good : TimingResult.Miss;
         }
 
-        
+        // Hors des fenêtres Perfect/Good = raté, inflige des dégâts au joueur.
+        // TooSoon/TooLate/Miss sont tous traités comme un raté.
+        if (result == TimingResult.TooSoon || result == TimingResult.TooLate || result == TimingResult.Miss)
+        {
+            return result; // Le PlayerCombat gère les dégâts pour TooSoon/TooLate
+        }
+
+        // Perfect ou Good : touche valide
         currentHP--;
 
         if (currentHP <= 0)
         {
-            
-            
-            if (result == TimingResult.TooSoon || result == TimingResult.Miss)
-            {
-                Die(TimingResult.TooSoon);
-                return TimingResult.TooSoon;
-            }
-            else
-            {
-                Die(result);
-            }
+            Die(result);
         }
 
         return result;

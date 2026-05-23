@@ -14,18 +14,22 @@ public class EnemyData : ScriptableObject
     [Tooltip("Vitesse de déplacement de base")]
     public float baseMoveSpeed = 3f;
 
-    [Tooltip("Dégâts infligés au joueur si l'ennemi explose")]
+    [Tooltip("Dégâts infligés au joueur si l'ennemi explose (auto-destruction)")]
     public int damage = 10;
 
     [Header("=== Input requis ===")]
     public EnemyInputType requiredInput = EnemyInputType.Any;
 
     [Header("=== Durée de vie ===")]
-    [Tooltip("Durée de vie minimum en beats (après le spawn). L'ennemi est détruit après ce délai.")]
-    public float lifetimeMinBeats = 8f;
+    [Tooltip("Durée en beats entre le SPAWN et le moment où l'ennemi devient vulnérable (le timing parfait).\n" +
+             "Plus cette valeur est grande, plus l'ennemi avance longtemps avant de pouvoir être frappé.\n" +
+             "Remplace l'ancien 'lookAheadBeats' du SpawnManager.")]
+    public float beatsBeforeVulnerable = 4f;
 
-    [Tooltip("Durée de vie maximum en beats. Si différent de min, un random entre min et max est choisi.")]
-    public float lifetimeMaxBeats = 8f;
+    [Tooltip("Durée en beats pendant laquelle l'ennemi reste vulnérable avant de s'auto-détruire.\n" +
+             "Si le joueur ne le frappe pas dans ce délai, l'ennemi explose et inflige des dégâts.\n" +
+             "Doit être supérieur aux fenêtres de timing (goodWindow × 2 minimum).")]
+    public float vulnerableWindowBeats = 2f;
 
     [Header("=== Clignotement avant vulnérabilité ===")]
     [Tooltip("Nombre de beats de clignotement avant de devenir vulnérable")]

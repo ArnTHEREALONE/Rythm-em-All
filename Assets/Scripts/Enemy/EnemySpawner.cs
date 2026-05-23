@@ -10,7 +10,7 @@ public class EnemySpawner : MonoBehaviour
 
     public float warningDuration = 2f;
 
-    public EnemyBase SpawnEnemy(BeatNote note, EnemyData data, float targetBeat)
+    public EnemyBase SpawnEnemy(BeatNote note, EnemyData data, float spawnBeat)
     {
         if (data == null || data.prefab == null)
         {
@@ -19,12 +19,12 @@ public class EnemySpawner : MonoBehaviour
         }
 
         GameObject enemyGO = Instantiate(data.prefab, transform.position, Quaternion.identity);
-        enemyGO.name = $"Enemy_{data.enemyId}_{targetBeat:F1}";
+        enemyGO.name = $"Enemy_{data.enemyId}_spawn{spawnBeat:F1}";
 
         EnemyBase enemy = enemyGO.GetComponent<EnemyBase>();
         if (enemy != null)
         {
-            enemy.Initialize(data, targetBeat);
+            enemy.Initialize(data, spawnBeat);
         }
 
         EnemyMovement movement = enemyGO.GetComponent<EnemyMovement>();
