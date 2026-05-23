@@ -190,18 +190,13 @@ public class EnemyBase : MonoBehaviour
         }
         else
         {
-            // Fallback : si vulnérable = Good, sinon Miss
-            result = currentState == EnemyState.Vulnerable ? TimingResult.Good : TimingResult.Miss;
+            // Fallback : si vulnérable = Good, sinon TooSoon
+            result = currentState == EnemyState.Vulnerable ? TimingResult.Good : TimingResult.TooSoon;
         }
 
-        // Hors des fenêtres Perfect/Good = raté, inflige des dégâts au joueur.
-        // TooSoon/TooLate/Miss sont tous traités comme un raté.
-        if (result == TimingResult.TooSoon || result == TimingResult.TooLate || result == TimingResult.Miss)
-        {
-            return result; // Le PlayerCombat gère les dégâts pour TooSoon/TooLate
-        }
-
-        // Perfect ou Good : touche valide
+        // L'ennemi est toujours détruit quelle que soit la fenêtre de timing.
+        // Si hors fenêtre (TooSoon/TooLate/Miss) → PlayerCombat inflige des dégâts au joueur.
+        // Si dans la fenêtre (Perfect/Good) → pas de dégâts au joueur.
         currentHP--;
 
         if (currentHP <= 0)
