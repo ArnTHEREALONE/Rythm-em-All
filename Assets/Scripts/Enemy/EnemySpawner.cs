@@ -31,6 +31,23 @@ public class EnemySpawner : MonoBehaviour
         if (movement != null)
         {
             movement.Initialize(spawnDirection, data.baseMoveSpeed);
+
+            // Configurer le zigzag depuis l'EnemyData
+            if (data.enableZigzag)
+            {
+                movement.SetZigzag(true, data.zigzagAmplitude, data.zigzagFrequency);
+            }
+        }
+
+        // Ajouter le composant de contact damage si nécessaire
+        if (data.damageOnContact)
+        {
+            var contact = enemyGO.GetComponent<EnemyContactDamage>();
+            if (contact == null)
+                contact = enemyGO.AddComponent<EnemyContactDamage>();
+
+            int dmg = data.contactDamage > 0 ? data.contactDamage : data.damage;
+            contact.Initialize(dmg);
         }
 
         return enemy;

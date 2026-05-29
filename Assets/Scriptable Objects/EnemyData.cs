@@ -39,6 +39,25 @@ public class EnemyData : ScriptableObject
     [Tooltip("Couleur du warning avant le spawn")]
     public Color warningColor = Color.red;
 
+    [Header("=== Contact ===")]
+    [Tooltip("Si activé, le contact avec le joueur détruit l'ennemi et inflige des dégâts au joueur.\n" +
+             "Utile pour les ennemis à éviter.")]
+    public bool damageOnContact = false;
+
+    [Tooltip("Dégâts infligés au contact avec le joueur (si damageOnContact est activé).\n" +
+             "Si laissé à 0, utilise la valeur 'damage' standard.")]
+    public int contactDamage = 0;
+
+    [Header("=== Zigzag ===")]
+    [Tooltip("Active le déplacement en zigzag latéral.")]
+    public bool enableZigzag = false;
+
+    [Tooltip("Amplitude du zigzag (distance latérale maximale).")]
+    public float zigzagAmplitude = 1f;
+
+    [Tooltip("Fréquence du zigzag (oscillations par seconde).")]
+    public float zigzagFrequency = 2f;
+
     [Header("=== Spam (si requiredInput == Spam) ===")]
     public int spamClicksRequired = 5;
     public float spamWindowDuration = 1f;
