@@ -188,7 +188,7 @@ public class GameUI : MonoBehaviour
         victoryPanel.SetActive(true);
 
         if (victoryScoreText != null)
-            victoryScoreText.text = $"Score\n{score:N0}";
+            victoryScoreText.text = $"Score {score:N0}";
 
         if (victoryBestComboText != null && ScoreManager.Instance != null)
             victoryBestComboText.text = $"Best Combo: {ScoreManager.Instance.BestCombo}x";
@@ -197,13 +197,13 @@ public class GameUI : MonoBehaviour
         {
             if (isNewRecord)
             {
-                victoryHighscoreText.text = "🏆 Nouveau Record !";
+                victoryHighscoreText.text = " New Highscore !";
                 victoryHighscoreText.gameObject.SetActive(true);
             }
             else
             {
                 int hs = MapSelectUI.GetHighScore(GameManager.SelectedBeatMap?.mapName ?? "");
-                victoryHighscoreText.text = hs > 0 ? $"Record: {hs:N0}" : "";
+                victoryHighscoreText.text = hs > 0 ? $"Highscore: {hs:N0}" : "";
                 victoryHighscoreText.gameObject.SetActive(hs > 0);
             }
         }
@@ -224,12 +224,11 @@ public class GameUI : MonoBehaviour
         gameOverPanel.SetActive(true);
 
         if (gameOverScoreText != null)
-            gameOverScoreText.text = $"Score\n{score:N0}";
+            gameOverScoreText.text = $"Score {score:N0}";
 
         if (gameOverBestComboText != null && ScoreManager.Instance != null)
             gameOverBestComboText.text = $"Best Combo: {ScoreManager.Instance.BestCombo}x";
 
-        // Rétro-compat
         if (finalScoreText != null)
             finalScoreText.text = $"Score: {score:N0}";
         if (finalComboText != null && ScoreManager.Instance != null)

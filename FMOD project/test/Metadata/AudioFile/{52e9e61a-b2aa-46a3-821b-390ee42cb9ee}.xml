@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{52e9e61a-b2aa-46a3-821b-390ee42cb9ee}">
+		<property name="assetPath">
+			<value>Fashion EDM Technology by Infraction [No Copyright Music]  Endless Sunrise.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>276.1142857142857</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{59d0a401-e5a1-4796-a52e-837d7b79cf92}</destination>
+		</relationship>
+	</object>
+</objects>

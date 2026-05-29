@@ -32,4 +32,4 @@ MonoBehaviour:
   goodWindow: 0.25
   tooSoonWindow: 0
   tooLateWindow: 0
-  vulnerabilityBeatOffset: -0.25
+  vulnerabilityBeatOffset: -0.75

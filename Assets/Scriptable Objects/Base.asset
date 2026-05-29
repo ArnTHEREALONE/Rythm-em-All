@@ -19,7 +19,7 @@ MonoBehaviour:
   damage: 30
   requiredInput: 0
   beatsBeforeVulnerable: 4
-  vulnerableWindowBeats: 0.5
+  vulnerableWindowBeats: 0.4
   blinkBeatsBeforeVulnerable: 6
   warningColor: {r: 1, g: 0, b: 0, a: 1}
   spamClicksRequired: 0
