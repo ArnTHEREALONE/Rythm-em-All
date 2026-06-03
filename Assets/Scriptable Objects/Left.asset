@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9315eafc9546e844ada6f5698c5824e, type: 3}
-  m_Name: Base
+  m_Name: Left
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyId: Base
-  prefab: {fileID: 656975314614994843, guid: f52707cc8830d5a439777177db272b96, type: 3}
+  prefab: {fileID: 656975314614994843, guid: 8fb6828a9f1ecbc4e90f6368466ddb61, type: 3}
   hitPoints: 1
   baseMoveSpeed: 3
   damage: 30
-  requiredInput: 0
+  requiredInput: 1
   beatsBeforeVulnerable: 4
   vulnerableWindowBeats: 0.4
   blinkBeatsBeforeVulnerable: 6

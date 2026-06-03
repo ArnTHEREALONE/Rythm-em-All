@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   baseScorePerKill: 10
-  perfectScoreMultiplier: 20
-  goodScoreMultiplier: 5
+  perfectScoreMultiplier: 2
+  goodScoreMultiplier: 1
   tooLateScoreMultiplier: 0
   tooSoonScoreMultiplier: 0
   scoreMultiplierBase: 1

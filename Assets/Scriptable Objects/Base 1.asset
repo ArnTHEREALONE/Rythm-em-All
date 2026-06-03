@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9315eafc9546e844ada6f5698c5824e, type: 3}
-  m_Name: Base
+  m_Name: Base 1
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyId: Base
   prefab: {fileID: 656975314614994843, guid: f52707cc8830d5a439777177db272b96, type: 3}
@@ -24,7 +24,7 @@ MonoBehaviour:
   warningColor: {r: 1, g: 0, b: 0, a: 1}
   damageOnContact: 0
   contactDamage: 10
-  enableZigzag: 0
+  enableZigzag: 1
   zigzagAmplitude: 2
   zigzagFrequency: 0.25
   spamClicksRequired: 0
